@@ -61,7 +61,7 @@ function Test-PrivacyAllowedValue {
     }
     if ($Category -eq 'url') {
         $Value=$Value.TrimEnd([char[]]'),.;]')
-        return $Value -cmatch '^https://(?:github\.com/andrewpozdnakov7-jpg/ADBMedic(?:(?:\.git)?/?|/commit/[a-f0-9]{40}|/pull/[0-9]+)|api\.github\.com/repos/andrewpozdnakov7-jpg/ADBMedic/commits/main|raw\.githubusercontent\.com/andrewpozdnakov7-jpg/ADBMedic/(?:(?:main|[a-f0-9]{40})/[A-Za-z0-9_.-]+)?|developer\.android\.com/(?:studio/run/oem-usb|tools/releases/platform-tools)|dl\.google\.com/android/repository/platform-tools-latest-windows\.zip|example\.(?:invalid|com)(?:/[A-Za-z0-9_./-]*)?)$'
+        return $Value -cmatch '^https://(?:github\.com/andrewpozdnakov7-jpg/ADBMedic(?:(?:\.git)?/?|\.git/info/refs\?service=git-upload-pack|/commit/[a-f0-9]{40}|/pull/[0-9]+)|api\.github\.com/repos/andrewpozdnakov7-jpg/ADBMedic/commits/main|raw\.githubusercontent\.com/andrewpozdnakov7-jpg/ADBMedic/(?:(?:main|[a-f0-9]{40})/[A-Za-z0-9_.-]+)?|developer\.android\.com/(?:studio/run/oem-usb|tools/releases/platform-tools)|dl\.google\.com/android/repository/platform-tools-latest-windows\.zip|example\.(?:invalid|com)(?:/[A-Za-z0-9_./-]*)?)$'
     }
     return $false
 }

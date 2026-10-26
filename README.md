@@ -24,6 +24,8 @@ After the project files have been published to the repository's `main` branch, r
 
 This command downloads and executes the installer from the selected repository. Review its source before running it. The installer asks before downloading application files, resolves the current `main` commit, and downloads an explicit list of required files from that same commit. It validates PowerShell syntax before activating the installation. No Git, npm or administrator rights are required.
 
+The commit is resolved from GitHub's public Git reference advertisement, parsed directly in PowerShell. Installation does not require REST API quota, a token or the Git executable. All reference packets must be valid and identify exactly one `main` revision; otherwise installation fails closed.
+
 Application versions are stored separately under `%LOCALAPPDATA%\ADBMedic\app\<commit>`. Existing versions are not overwritten. Repeating the command installs the current revision; an existing copy of that revision must match the downloaded files. Diagnostics remain in the separate local `%LOCALAPPDATA%\ADBMedic\data` directory. The installer does not read them.
 
 The default launch mode is `offline`: local collection and reports. Raw-dump ZIP export and cloud analysis remain disabled. If ADB is missing, the launcher offers a separate download of official Google Platform-Tools. Collection also requires confirmation.
