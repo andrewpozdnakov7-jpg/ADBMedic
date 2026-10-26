@@ -147,6 +147,21 @@ try {
     $null=Git $gitRoot @('add','README.md')
     $unsafeTree=Git $gitRoot @('write-tree')
     $parent=Git $gitRoot @('rev-parse','HEAD')
+    $savedCommitterName=$env:GIT_COMMITTER_NAME
+    $savedCommitterEmail=$env:GIT_COMMITTER_EMAIL
+    try {
+        $env:GIT_COMMITTER_NAME='GitHub'
+        $env:GIT_COMMITTER_EMAIL='noreply'+'@'+'github.com'
+        $serviceCommit=Git $gitRoot @('commit-tree',$cleanTree,'-p',$parent,'-m','Synthetic official service metadata')
+        Assert (@(Invoke-PrivacyAudit $gitRoot 'History' $serviceCommit).Count -eq 0) 'official GitHub service committer is not mistaken for private identity'
+        $env:GIT_COMMITTER_NAME='TEST_PRIVATE_AUTHOR'
+        $env:GIT_COMMITTER_EMAIL='TEST_PERSON'+'@'+'privacy-test.invalid'
+        $privateCommit=Git $gitRoot @('commit-tree',$cleanTree,'-p',$parent,'-m','Synthetic unapproved metadata')
+        Assert (@(@(Invoke-PrivacyAudit $gitRoot 'History' $privateCommit) -match 'unapproved-author').Count -gt 0) 'unapproved committer metadata is still rejected'
+    } finally {
+        $env:GIT_COMMITTER_NAME=$savedCommitterName
+        $env:GIT_COMMITTER_EMAIL=$savedCommitterEmail
+    }
     $unsafeCommit=Git $gitRoot @('commit-tree',$unsafeTree,'-p',$parent,'-m','Synthetic unsafe ancestor')
     Assert ((Git $gitRoot @('show',($unsafeCommit+':README.md'))).TrimStart([char]0xFEFF) -eq $cases[5].Value) 'unsafe ancestor really contains the synthetic token'
     $cleanTip=Git $gitRoot @('commit-tree',$cleanTree,'-p',$unsafeCommit,'-m','Synthetic clean tip')

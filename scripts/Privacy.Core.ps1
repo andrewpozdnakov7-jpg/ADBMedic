@@ -170,11 +170,13 @@ function Invoke-PrivacyAudit {
     $checked = @{}
     foreach ($commit in $commits) {
         $metadata = Get-PrivacyText (Invoke-PrivacyGit $Root @('cat-file','commit',$commit))
-        $reviewMetadata = ($metadata -split '\r?\n' | Where-Object { $_ -notmatch '^(tree|parent) [a-f0-9]{40}$' }) -join "`n"
+        $reviewMetadata = ($metadata -split '\r?\n' | Where-Object { $_ -notmatch '^(tree|parent) [a-f0-9]{40}$' -and $_ -cnotmatch '^committer GitHub <noreply@github\.com> \d+ [+-]\d{4}$' }) -join "`n"
         Get-PrivacyTextFindings $reviewMetadata '[commit-metadata]'
         foreach ($line in ($metadata -split '\r?\n')) {
             if ($line -match '^(author|committer) (.+) <([^>]+)> ') {
-                if ($Matches[2] -cne 'Andrew' -or $Matches[3] -cne 'andrewpozdnakov7@gmail.com') { '[commit-metadata]:0 unapproved-author' }
+                $developer=$Matches[2] -ceq 'Andrew' -and $Matches[3] -ceq 'andrewpozdnakov7@gmail.com'
+                $githubService=$Matches[1] -ceq 'committer' -and $Matches[2] -ceq 'GitHub' -and $Matches[3] -cmatch '^noreply@github\.com$'
+                if (-not $developer -and -not $githubService) { '[commit-metadata]:0 unapproved-author' }
             }
         }
         $listing = Get-PrivacyText (Invoke-PrivacyGit $Root @('ls-tree','-r','-z',$commit)) -AllowNull
