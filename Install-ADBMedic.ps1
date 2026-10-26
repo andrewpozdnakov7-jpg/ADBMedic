@@ -11,7 +11,6 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
 # This repository is explicitly selected by the project owner.
-$repository = 'andrewpozdnakov7-jpg/ADBMedic'
 $files = @(
     'bootstrap.ps1', 'Start-ADBMedic.ps1', 'ADBMedic-Device.ps1',
     'ADBMedic-Locale.ps1', 'Package-ADBMedic.ps1', 'Analyze-ADBMedic.ps1',
@@ -45,18 +44,30 @@ $stage = $null
 $oldProtocol = [Net.ServicePointManager]::SecurityProtocol
 try {
     [Net.ServicePointManager]::SecurityProtocol = $oldProtocol -bor [Net.SecurityProtocolType]::Tls12
-    $commit = Invoke-RestMethod -Uri 'https://api.github.com/repos/andrewpozdnakov7-jpg/ADBMedic/commits/main' -Headers @{'User-Agent'='ADBMedic-Installer'}
-    $revision = [string]$commit.sha
-    if ($revision -cnotmatch '^[0-9a-f]{40}$') {
-        throw 'Invalid source revision.'
+    # Read the public Git advertisement without REST API quota or a Git executable.
+    $advertisement=Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/andrewpozdnakov7-jpg/ADBMedic.git/info/refs?service=git-upload-pack' -TimeoutSec 30
+    try { $references=[Text.Encoding]::ASCII.GetString($advertisement.RawContentStream.ToArray()) }
+    finally { $advertisement.RawContentStream.Dispose() }
+    $offset=0; $service=$false; $revisions=@()
+    while ($offset -lt $references.Length) {
+        if ($offset+4 -gt $references.Length) { throw 'Incomplete source advertisement.' }
+        $packetLength=[int]::Parse($references.Substring($offset,4),[Globalization.NumberStyles]::HexNumber)
+        if ($packetLength -eq 0) { $offset+=4; continue }
+        if ($packetLength -lt 4 -or $offset+$packetLength -gt $references.Length) { throw 'Invalid source advertisement.' }
+        $packet=$references.Substring($offset+4,$packetLength-4)
+        if ($offset -eq 0 -and $packet -ceq "# service=git-upload-pack`n") { $service=$true }
+        if ($packet -cmatch '^([0-9a-f]{40}) refs/heads/main(?:\x00[^\r\n]*)?\n$') { $revisions+=$Matches[1] }
+        $offset+=$packetLength
     }
+    if (-not $service -or $revisions.Count -ne 1) { throw 'Invalid source revision.' }
+    $revision=$revisions[0]
     [IO.Directory]::CreateDirectory($InstallRoot) | Out-Null
     $stage = Join-Path $InstallRoot ('staging-' + [guid]::NewGuid().ToString('N'))
     [IO.Directory]::CreateDirectory($stage) | Out-Null
     foreach ($name in $files) {
         $destination = Join-Path $stage $name
         $uri = 'https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/' + $revision + '/' + $name
-        Invoke-WebRequest -UseBasicParsing -Uri $uri -OutFile $destination | Out-Null
+        Invoke-WebRequest -UseBasicParsing -Uri $uri -OutFile $destination -TimeoutSec 30 | Out-Null
         if (-not (Test-Path -LiteralPath $destination -PathType Leaf) -or (Get-Item -LiteralPath $destination).Length -eq 0) {
             throw 'A required source file is unavailable.'
         }
