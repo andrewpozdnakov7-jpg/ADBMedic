@@ -1,0 +1,3 @@
+#!/bin/sh
+powershell.exe -NoLogo -NoProfile -NonInteractive -File ./privacy-audit.ps1 -Mode Worktree || exit $?
+powershell.exe -NoLogo -NoProfile -NonInteractive -File ./privacy-audit.ps1 -Mode Staged || exit $?

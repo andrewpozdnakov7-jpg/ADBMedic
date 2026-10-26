@@ -1,0 +1,13 @@
+{
+    "project":  "ADBMedic",
+    "package_type":  "development_source",
+    "task":  "TASK-001",
+    "public_release_ready":  false,
+    "legacy_source_history_included":  false,
+    "real_device_diagnostics_included":  false,
+    "cloud_ai_disabled_until_privacy_gate":  true,
+    "raw_zip_export_disabled_until_privacy_gate":  true,
+    "private_identifiers_included":  false,
+    "approved_public_git_identity":  true,
+    "rename_is_not_guaranteed_anonymity":  true
+}

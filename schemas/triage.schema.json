@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "follow_up": {
+      "type": "string",
+      "enum": [
+        "none",
+        "cpu_threads",
+        "camera_state",
+        "sensors",
+        "alarms",
+        "logs"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "summary",
+    "confidence",
+    "follow_up",
+    "reason"
+  ]
+}
