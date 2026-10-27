@@ -4,15 +4,16 @@ param(
     [string]$Language='auto',
     [switch]$PassThru
 )
-# Raw export stays blocked. The owner authorized a validated derived-facts ZIP.
+# The user manually shares diagnostic evidence with their chosen AI.
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'ADBMedic-Locale.ps1')
 $locale=Resolve-ADBMedicLanguage -Language $Language
 try{
     . (Join-Path $PSScriptRoot 'ADBMedic-SafeExport.ps1')
-    $bundle=New-ADBMedicSafeBundle $Session $locale.UI
+    . (Join-Path $PSScriptRoot 'ADBMedic-Handoff.ps1')
+    $bundle=New-ADBMedicDiagnosticBundle $Session $locale.UI
     if($PassThru){Write-Output $bundle}else{Write-Output $bundle.ArchiveName}
 }catch{
-    if($locale.UI -eq 'ru'){throw 'Безопасный ZIP не создан: данные отсутствуют, формат не поддерживается или проверка не пройдена. Не передавайте сырые логи или локальный отчёт.'}
-    throw 'Safe ZIP was not created: measurements are missing, unsupported or failed validation. Do not share raw logs or the private local report.'
+    if($locale.UI -eq 'ru'){throw 'Диагностический ZIP не создан: отсутствует контекст, обнаружены возможные секреты или проверка не пройдена. Подробности остаются локальными.'}
+    throw 'Diagnostic ZIP was not created: context is missing, possible secrets were found or validation failed. Details remain local.'
 }

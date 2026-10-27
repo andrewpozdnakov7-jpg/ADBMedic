@@ -13,7 +13,7 @@ $ProgressPreference = 'SilentlyContinue'
 # This repository is explicitly selected by the project owner.
 $files = @(
     'bootstrap.ps1', 'Start-ADBMedic.ps1', 'ADBMedic-Device.ps1',
-    'ADBMedic-Locale.ps1', 'ADBMedic-SafeExport.ps1', 'Package-ADBMedic.ps1', 'Analyze-ADBMedic.ps1',
+    'ADBMedic-Locale.ps1', 'ADBMedic-SafeExport.ps1', 'ADBMedic-Handoff.ps1', 'AI-ANALYST.md', 'Package-ADBMedic.ps1', 'Analyze-ADBMedic.ps1',
     'Prepare-ADBMedicEvidence.ps1', 'Write-ADBMedicPreliminary.ps1',
     'Show-ADBMedicReport.ps1', 'README.md', 'LICENSE'
 )
@@ -33,7 +33,7 @@ if (Test-Path -LiteralPath $InstallRoot) {
 }
 
 Write-Host 'ADBMedic source: https://github.com/andrewpozdnakov7-jpg/ADBMedic'
-Write-Host 'Downloads program source only. Raw-log export and automatic cloud analysis remain disabled.'
+Write-Host 'Downloads program source only. Diagnostic archives stay local until you share them manually. No automatic AI uploads.'
 $answer = Read-Host 'Download and install ADBMedic from this repository? [y/N]'
 if ($answer -notmatch '^(y|yes|да|д)$') {
     Write-Host 'Installation cancelled.'

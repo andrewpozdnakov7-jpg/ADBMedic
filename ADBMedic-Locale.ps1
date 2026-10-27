@@ -72,8 +72,8 @@ function Get-ADBMedicText {
             openReport='1. Открыть отчёт'
             openReportFolder='2. Посмотреть папку с отчётом'
             reportChoice='Введите 1 или 2; Enter — завершить'
-            shareInstruction='Для анализа прикрепите ADBMedic-report.zip в чат вашей нейросети — ChatGPT, Claude или другой. В архиве уже есть данные и инструкция для нейросети. Выберите 2, чтобы найти ZIP. Передавайте только этот архив.'
-            shareBlocked='Безопасный ZIP не подготовлен: формат измерений не поддерживается или проверка не пройдена. Локальный отчёт доступен, но не отправляйте его или сырые логи в чат.'
+            shareInstruction='Прикрепите ADBMedic-report.zip в чат нейросети, которой доверяете. Внутри реальные приложения, жалоба, подробная диагностика и инструкция для ИИ. Проверьте содержимое перед передачей. Выберите 2, чтобы найти ZIP. ИИ должен дать заключение, план действий и дополнительные ADB-команды при необходимости.'
+            shareBlocked='Диагностический ZIP не подготовлен: отсутствует контекст, найдены возможные секреты или проверка не пройдена. Локальный отчёт доступен. Автоматическая отправка не выполняется.'
             invalidReportChoice='Выберите 1 или 2; для завершения нажмите Enter.'
             openFailed='Не удалось открыть выбранное окно. Можно повторить выбор или открыть папку с отчётом.'
         }
@@ -115,8 +115,8 @@ function Get-ADBMedicText {
         openReport='1. Open the report'
         openReportFolder='2. Open the report folder'
         reportChoice='Choose 1 or 2; Enter to finish'
-        shareInstruction='For analysis, attach ADBMedic-report.zip to your AI chat: ChatGPT, Claude or another. The archive already contains measurements and instructions for the assistant. Choose 2 to find the ZIP. Share only that archive.'
-        shareBlocked='Safe ZIP was not prepared: measurements are unsupported or failed validation. The local report is available, but do not send it or raw logs to an AI chat.'
+        shareInstruction='Attach ADBMedic-report.zip to an AI chat you trust. It retains real applications, your complaint, detailed diagnostics and AI instructions. Review it before sharing. Choose 2 to find it. The AI should give a conclusion, action plan and focused follow-up ADB commands when needed.'
+        shareBlocked='Diagnostic ZIP was not prepared: context is missing, possible secrets were found or validation failed. A local report is available. Nothing is uploaded automatically.'
         invalidReportChoice='Choose 1 or 2, or press Enter to finish.'
         openFailed='Could not open the selected window. Try again or open the report folder.'
     }

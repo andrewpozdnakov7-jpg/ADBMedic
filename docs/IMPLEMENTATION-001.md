@@ -91,3 +91,13 @@ Workflow использует read-only token, checkout без сохранен�
 После тестов создаётся архив только разрешённых исходников, затем он распаковывается и проверяется повторно. На main результат публикуется как Actions artifact на 7 дней. Диагностика, тестовые каталоги и персональные данные не загружаются. Релизы, custom secrets, изменения устройства и автоматическая передача в AI не включены.
 
 Локальный Windows PowerShell 5.1: `scripts/Run-CI.ps1` — PASS, 322 проверки плюс smoke. Новые отрицательные случаи подтверждают отказ для непроверенного action SHA, workflow без manifest entry и других файлов автоматизации. Наборы тестов запускаются в отдельных процессах текущего PowerShell. Результаты реального GitHub runner и защита main проверяются при развёртывании; ссылки на run/PR приводятся в финальном сообщении. Подробности — в CI.md.
+
+## Diagnostic AI handoff v2
+
+The owner changed the product goal from anonymous numeric summaries to useful evidence for a manually chosen Android diagnostic AI. The shipped AI-ANALYST.md contract is embedded in each archive and summarized in the report: evidence-based conclusions, real application attribution, typed event counters and windows, reversible treatment, focused read-only ADB follow-up and detailed user feedback. GitHub is optional reference context; the contract works without browsing.
+
+Package-ADBMedic.ps1 now produces schema 2: complaint, model/Android, collection times and allowlisted detailed text, including package/UID mapping, current battery state, alarms, jobs and idle state. Names and UID/PID remain useful. No unverified numeric battery balance is generated; original sections remain available for the AI to check. Capture intervals are distinct from historical counter windows. Unsupported OEM text remains inspectable and missing/failed commands are explicit.
+
+Known credential/private-key patterns block the whole export; UTF-8, path/link, input-size, allowlist, overwrite and ZIP-content checks remain. This is intentionally private diagnostic evidence, not anonymized data or a guarantee of complete secret detection. Diagnostic archives remain excluded from Git and CI source artifacts. There are no automatic uploads, device changes or automatic execution of AI advice.
+
+Windows PowerShell 5.1 targeted validation passed: handoff 57 assertions, runtime 97 assertions, smoke/privacy 66 assertions. Installer checks cover the two new pinned runtime files. Full Windows PowerShell 5.1/7 suites run on the final PR revision. Legacy schema-1 projection tests remain as compatibility coverage. Real-device collection and external-AI diagnostic quality require user acceptance with a newly collected archive; no old user report was modified or published.

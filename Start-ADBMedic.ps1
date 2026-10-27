@@ -35,12 +35,17 @@ function EnsureAdb {
 }
 function Capture([string]$name,[string[]]$argv,[string]$folder,[string]$adb,[string]$serial) {
     $path=Join-Path $folder ($name+'.txt')
+    $started=[DateTime]::UtcNow.ToString('o')
+    $code=$null
     try{
         $text=(& $adb -s $serial @argv 2>&1 | Out-String)
-        if($LASTEXITCODE -ne 0){$text='Command failed: '+$text}
+        $code=$LASTEXITCODE
+        if($code -ne 0){$text='Command failed: '+$text}
         [IO.File]::WriteAllText($path,$text,[Text.Encoding]::UTF8)
     }catch{
         [IO.File]::WriteAllText($path,'Capture failed: '+$_.Exception.Message,[Text.Encoding]::UTF8)
+    }finally{
+        $captures.Add([pscustomobject]@{file=($name+'.txt');command=($argv -join ' ');startedUtc=$started;finishedUtc=[DateTime]::UtcNow.ToString('o');exitCode=$code})
     }
 }
 
@@ -69,14 +74,20 @@ New-Item -ItemType Directory -Force -Path $folder | Out-Null
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $folder 'locale.json') -Encoding UTF8
 
 Write-Host $t.collecting -ForegroundColor Cyan
+$captures=New-Object 'System.Collections.Generic.List[object]'
 Capture 'cpu' @('shell','dumpsys','cpuinfo') $folder $adb $serial
 Capture 'top' @('shell','top','-b','-d','2','-n','3') $folder $adb $serial
 Capture 'battery' @('shell','dumpsys','batterystats') $folder $adb $serial
+Capture 'battery-state' @('shell','dumpsys','battery') $folder $adb $serial
 Capture 'power' @('shell','dumpsys','power') $folder $adb $serial
 Capture 'thermal' @('shell','dumpsys','thermalservice') $folder $adb $serial
 Capture 'camera' @('shell','dumpsys','media.camera') $folder $adb $serial
 Capture 'sensors' @('shell','dumpsys','sensorservice') $folder $adb $serial
-Capture 'build' @('shell','getprop','ro.build.fingerprint') $folder $adb $serial
+Capture 'packages' @('shell','pm','list','packages','-U') $folder $adb $serial
+Capture 'alarms' @('shell','dumpsys','alarm') $folder $adb $serial
+Capture 'jobs' @('shell','dumpsys','jobscheduler') $folder $adb $serial
+Capture 'deviceidle' @('shell','dumpsys','deviceidle') $folder $adb $serial
+[IO.File]::WriteAllText((Join-Path $folder 'collection.json'),(ConvertTo-Json -InputObject @($captures.ToArray()) -Depth 5),[Text.Encoding]::UTF8)
 
 $preliminary=Join-Path $root 'Write-ADBMedicPreliminary.ps1'
 $viewer=Join-Path $root 'Show-ADBMedicReport.ps1'
@@ -98,19 +109,6 @@ if($bundle -and $bundle.Ready){
     $notice=if($locale.UI -eq 'ru'){'Приватный локальный отчёт. Для передачи в чат используйте только подготовленный ZIP.'}else{'Private local report. Share only the prepared ZIP with an AI chat.'}
     $addition.Add($notice)
     $addition.Add([IO.File]::ReadAllText((Join-Path $bundle.Directory 'REPORT.md')).Substring("# ADBMedic`n".Length))
-    if($locale.UI -eq 'ru'){
-        $addition.Add('## Соответствие меток — только на этом компьютере')
-        $addition.Add('Это приватная часть отчёта, не включённая в ZIP. По ней можно понять рекомендации нейросети. Не отправляйте этот локальный отчёт в чат.')
-    }else{
-        $addition.Add('## Private label mapping — on this computer only')
-        $addition.Add('This private section is not included in the ZIP. Use it to understand the assistant recommendations. Do not share this local report.')
-    }
-    $addition.Add('| Label | Observed local process names |')
-    $addition.Add('| --- | --- |')
-    foreach($subject in $bundle.PrivateSubjects){
-        $names=if($subject.Names.Count){$subject.Names -join ', '}else{'not_observed_in_cpu_samples'}
-        $addition.Add('| '+$subject.Label+' | '+$names+' |')
-    }
     $addition.Add('## '+$t.findings)
     $addition.Add([IO.File]::ReadAllText($privateReport))
     [IO.File]::WriteAllText($privateReport,(($addition -join [Environment]::NewLine)+[Environment]::NewLine),[Text.Encoding]::UTF8)
