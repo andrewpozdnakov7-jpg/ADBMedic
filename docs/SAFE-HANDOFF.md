@@ -1,32 +1,28 @@
-# Safe manual handoff v1
+# Manual diagnostic handoff v2
 
-The owner authorized a validated ZIP and assistant instructions after TASK-001. This permits a projection of supported measurements, not raw-log export or automatic AI access. No browser or folder opens until the user chooses a menu item.
+The owner changed the product goal: preserve useful evidence so a manually chosen AI can investigate causes, explain real application energy use, propose treatment and prescribe follow-up read-only ADB examinations. Source/GitHub privacy gates remain separate and mandatory. Diagnostic ZIPs never enter Git, CI source artifacts or automatic uploads.
 
 ## User flow
 
-After collection, the terminal announces that the report is ready, explains manual AI handoff only when validation succeeds, and offers 1 (private local report), 2 (prepared export folder), Enter (finish). A failed window launch returns to the menu. Unsupported measurements leave a private local report and a clear no-share warning; no fabricated ZIP is offered.
+Run bootstrap without arguments, consent to collection and describe the complaint. After collection, choose 1 to open the report, 2 to open the export folder, or Enter to exit. The app opens nothing automatically. Review ADBMedic-report.zip and manually attach it to an AI you trust. The collector does not run AI recommendations.
 
-The prepared folder contains `ADBMedic-report.zip` plus the four share documents. The ZIP contains exactly `REPORT.md`, `REPORT.html`, `facts.json` and `MANUAL-ANALYSIS-PROMPT.md`. The private report and raw capture files stay outside it. The private report also contains the P-label/process-name mapping needed to interpret an assistant's recommendations. Missing mappings are explicitly unknown; process names are never guessed.
+The archive contains REPORT.md, REPORT.html, facts.json (schemaVersion 2), MANUAL-ANALYSIS-PROMPT.md and selected evidence text files. The complete AI-ANALYST.md contract is embedded in the prompt, with the selected answer language. The project link is optional context; browsing is not required. Without ZIP support, attach the extracted documents and relevant evidence files.
 
-The user manually attaches the ZIP to a suitable AI chat. A chat unable to read ZIP can receive the extracted Markdown, JSON and instruction file. No provider integration, credential or automatic upload is added.
+## Evidence and interpretation
 
-## Allowed measurements
+- facts.json preserves the complaint, device model/Android, session capture time and per-source collection result/size/start/end/exit code. Capture intervals describe command execution, not the historical counter period. Older sessions without capture metadata explicitly have null times.
+- Original CPU, top, batterystats, current battery state, power, thermal, camera, sensors, package-to-UID mapping, alarm, jobscheduler and deviceidle text is retained when available. Real names, UID/PID, tags and counter details are intentional. Empty, failed and missing files are explicit; unsupported OEM text is retained for analysis rather than silently discarded.
+- No parsed mAh summary is presented as a verified balance. The AI must check source section, model, units and window before comparing totals/entries. Short CPU snapshots cannot establish a day's drain. Shared UID attribution and USB power state matter.
+- No full getprop, build fingerprint, ADB serial, bugreport, logcat, credentials file or arbitrary session directory is added by the collector. Detailed service dumps and complaints can still contain sensitive information: this is a private archive, not an anonymous public artifact.
 
-- Fixed schema version, fixed request category (battery/cpu/camera/sensors/general), Russian/English answer language and nominal 2-second collector interval.
-- At most three recognized Toybox CPU samples: normalized whole-CPU busy percent, plus up to 15 anonymized subject groups with per-core CPU percentages. More than 100% for a group is possible. Labels group observed Android users, not necessarily single applications.
-- Recognized battery time-on-battery and screen-off windows rounded down to minutes; optional estimated aggregate mAh and up to 15 subject estimates. These are model estimates with potentially different time bases, not proof of sustained drain.
-- Optional powered state, wakefulness enum and thermal severity 0–6. Missing fields remain null, never fabricated zeroes.
+## Boundaries
 
-Names/packages, actual UID/PID, device model/fingerprint/serial, capacity, wall-clock times, hashes of identifiers, original complaint text, network addresses, raw logs, native stacks and camera/sensor dumps are excluded. The free-text complaint selects only a fixed task category. P-labels have meaning only within one session and must not be assumed stable across separate ZIPs.
+Only fixed source filenames are read. Inputs require strict UTF-8, no NUL, regular files, a non-reparse local session path and at most 16 MiB per file / 64 MiB of evidence. The scanner blocks known credential/key patterns; it does not claim universal secret detection or anonymization. Unknown extra files are ignored. Existing exports are never overwritten. ZIP entries are checked against the expected list and their exact text is compared before the export becomes visible.
 
-## Validation boundary
+Source publication uses the separate Worktree/Staged/History gates and a positive source manifest. The legacy numeric/P-label v1 projector remains for compatibility tests only; Package-ADBMedic.ps1 now creates the diagnostic v2 archive. Automatic cloud analysis remains disabled.
 
-Input reads use only fixed filenames, strict UTF-8 and a 16 MiB per-file limit. UNC paths and reparse points in the session path or input files are rejected. Known malformed measurements, contradictory windows and duplicate energy entries fail closed. Unrecognized source sections are not copied; absent supported measurements block export.
+## AI result
 
-The independent output gate reparses a closed JSON schema with explicit field names, primitive types, numeric ranges, enum values, array limits and time consistency. It requires canonical JSON, exactly generated Markdown/instructions, and an independently rendered deterministic HTML report. Extra fields/files or appended text are rejected. There is no regex-based claim that arbitrary raw data became anonymous.
+The required answer contains a diagnostic conclusion, application evidence table with exact counter types/windows/source references, ranked explanations, 3-5 reversible treatment steps, focused additional commands when needed, and a user feedback template. It must not invent counters, derive energy per call without a valid model, guess application identities or claim every top consumer is faulty. Follow-up commands are Windows PowerShell compatible and read-only; no reset/root/flash/kill/uninstall/settings changes are diagnostic steps.
 
-Only four exact leaf names enter the ZIP. Entry timestamps are fixed rather than copied from collection time. After creation, entries are checked for duplicates, path/size violations and decompression bounds, extracted to a separate directory and validated again. Existing export directories are not overwritten or silently reused. Final export becomes visible only after both gates pass.
-
-The assistant instruction requires a plain-language conclusion, field-based evidence, confidence, 3–5 prioritized reversible steps, detailed user feedback and a concrete next measurement if needed. It forbids invented app names, unwarranted malware/hardware claims, root/flash/reset/data-loss/system-service operations and requests for private logs. CPU snapshots, estimated energy and collection over USB must be interpreted with their limits.
-
-This v1 covers only the listed formats and metrics. OEM/Android variants can be unsupported. Numeric workload patterns can still be correlated with external observations; no absolute anonymity or independent external security audit is claimed. Real-device verification remains the owner's job. The raw-export and automatic-cloud holds remain in force.
+Validation uses synthetic fixtures. A real-device run and the quality of an external AI's conclusion still need user acceptance. An old schema-1 archive does not gain new data when source is updated: collect a new session.

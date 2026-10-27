@@ -16,7 +16,7 @@ irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1
 
 Confirmez l'installation et la collecte des données. Si ADB est absent, l'application vous proposera de le télécharger. Sur le téléphone, autorisez le débogage depuis cet ordinateur. À la fin, choisissez **1 — ouvrir le rapport** ou **2 — ouvrir son dossier**. Rien ne s'ouvre automatiquement ; appuyez sur Entrée pour terminer.
 
-Quand l'application confirme que le ZIP sécurisé est prêt, joignez **ADBMedic-report.zip** à votre chat IA (ChatGPT, Claude ou autre) et demandez-lui de suivre les instructions incluses. L'archive contient les mesures et une demande de conclusions claires, d'étapes détaillées et de suivi. L'option 2 ouvre le dossier du ZIP. Si le chat ne lit pas les ZIP, extrayez-le et joignez REPORT.md, facts.json et MANUAL-ANALYSIS-PROMPT.md.
+Quand le ZIP de diagnostic est prêt, joignez **ADBMedic-report.zip** à une IA de confiance et demandez-lui de suivre les instructions. Elle recherche les causes, explique la consommation par application réelle avec valeurs, types d'événements et périodes, propose des actions et vérifie le résultat. Si des données manquent, elle fournit des commandes ADB ciblées en lecture seule avec explications. [Contrat de l'IA](../../AI-ANALYST.md). L'option 2 ouvre le dossier. Sans prise en charge ZIP, joignez REPORT.md, facts.json, MANUAL-ANALYSIS-PROMPT.md et les fichiers utiles de evidence.
 
 L'interface de diagnostic prend actuellement en charge le russe et l'anglais et choisit la langue selon la langue d'affichage de Windows. Pour les autres langues, l'anglais est utilisé. Aucun mode ni paramètre de commande à choisir.
 
@@ -32,7 +32,7 @@ Ouvrez PowerShell dans le dossier du projet et lancez :
 
 Le script lit les données de diagnostic et les enregistre sur votre ordinateur dans `%LOCALAPPDATA%\ADBMedic`. Il ne modifie pas les paramètres du téléphone et n'envoie pas de données de diagnostic dans le cloud.
 
-Le rapport local est privé. Partagez uniquement le ZIP préparé : il contient des mesures numériques validées et des étiquettes de processus propres à cette session, sans identifiants ni journaux bruts. Si la validation échoue, aucune archive à partager n'est créée. Aucun diagnostic ni envoi vers une IA n'est automatique ; le chat choisi effectue l'analyse. [Format d'export et limites](../SAFE-HANDOFF.md).
+Le ZIP est privé : plainte, modèle/Android, heures de collecte, vrais noms de processus et paquets, UID/PID et diagnostics détaillés sont conservés. Examinez-le avant de le transmettre à l'IA choisie. Ne le publiez pas sur GitHub. Les motifs connus de secrets et clés privées bloquent l'archive, sans garantie de détecter tous les secrets. Aucun envoi ni conseil n'est exécuté automatiquement. [Format et limites](../SAFE-HANDOFF.md).
 
 Testé avec Windows PowerShell 5.1. Une exécution complète avec un téléphone réel reste à vérifier.
 

@@ -54,6 +54,10 @@ function adb {
         if ($args[4] -eq 'ro.build.version.release') { return '14' }
         return 'TEST_SYNTHETIC_BUILD'
     }
+    if($args[3] -eq 'pm'){
+        if(($args[4..6] -join ' ') -ne 'list packages -U'){throw 'Unexpected package operation.'}
+        return 'package:com.example.synthetic uid:10123'
+    }
     if ($args[3] -notin @('dumpsys','top')) { throw 'Unexpected synthetic ADB shell operation.' }
     if($args[3] -eq 'top'){
         if($runtimeTestState.Case -eq 'unsupported'){return 'TEST_UNKNOWN_FORMAT'}
@@ -110,7 +114,7 @@ try {
     }
     $sessions=@(Get-ChildItem -LiteralPath (Join-Path $testRoot 'ADBMedic/data') -Directory)
     Assert ($sessions.Count -eq 1) 'only successful synthetic collection creates a session'
-    foreach ($name in @('profile.json','symptom.txt','cpu.txt','top.txt','battery.txt','power.txt','thermal.txt','camera.txt','sensors.txt','build.txt','REPORT.md','REPORT.html')) {
+    foreach ($name in @('profile.json','symptom.txt','cpu.txt','top.txt','battery.txt','battery-state.txt','power.txt','thermal.txt','camera.txt','sensors.txt','packages.txt','alarms.txt','jobs.txt','deviceidle.txt','collection.json','REPORT.md','REPORT.html')) {
         Assert (Test-Path -LiteralPath (Join-Path $sessions[0].FullName $name)) 'local collection and report output is retained'
     }
     foreach ($call in $runtimeTestState.Calls) {
@@ -144,8 +148,9 @@ try {
     $runtimeTestState.Case='unsupported';$runtimeTestState.Prompts=0
     $log=@(& (Join-Path $root 'bootstrap.ps1') -NoBrowser *>&1)
     $created=@(Get-ChildItem -LiteralPath (Join-Path $testRoot 'ADBMedic/data') -Directory | Where-Object{$before -notcontains $_.FullName})
-    Assert ($created.Count -eq 1 -and -not(Test-Path -LiteralPath (Join-Path $created[0].FullName 'exports'))) 'unsupported capture retains a local report without a fabricated archive'
-    Assert (-not (($log -join "`n").Contains('ADBMedic-report.zip'))) 'failed export does not tell the user to upload a nonexistent ZIP'
+    Assert ($created.Count -eq 1 -and (Test-Path -LiteralPath (Join-Path $created[0].FullName 'exports/ADBMedic-report.zip'))) 'unrecognized OEM evidence is retained for the diagnostic analyst'
+    $handoff=[IO.File]::ReadAllText((Join-Path $created[0].FullName 'exports/facts.json'))|ConvertFrom-Json
+    Assert ($handoff.schemaVersion -eq 2 -and $handoff.complaint -ceq 'TEST_SYNTHETIC_SYMPTOM') 'runtime handoff preserves complaint in schema 2'
     Write-Host ('Offline runtime safety tests: PASS ('+$runtimeTestState.Passed+' assertions).')
 } finally {
     $env:LOCALAPPDATA=$savedLocalData

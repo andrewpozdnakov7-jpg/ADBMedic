@@ -1,5 +1,9 @@
 # ADBMedic development rules
 
+## Current owner request: diagnostic AI handoff v2
+
+The product goal is an evidence-based Android diagnosis, actionable treatment and follow-up examinations by the user's manually chosen AI. Diagnostic ZIPs intentionally retain the complaint, device model/Android context, real packages/processes and UID/PID, timestamps and detailed allowlisted diagnostic dumps. Source/GitHub deanonymization gates remain mandatory and never permit diagnostic archives in Git or CI artifacts. Known credentials/private keys block handoff. No automatic uploads or execution of AI advice. Collection and follow-up ADB examinations remain read-only. The AI must distinguish event counter types and windows, justify hypotheses, provide reversible steps and prescribe focused additional ADB commands when evidence is missing. AI-ANALYST.md is the self-contained shipped contract. This explicit owner decision supersedes older numeric-only/P-label export rules; the legacy v1 projector is retained only for compatibility tests.
+
 ## Current owner request: GitHub CI/CD
 
 The owner explicitly authorized GitHub Actions CI/CD. The only approved workflow is `.github/workflows/ci.yml`: Windows PowerShell 5.1/7 synthetic tests, Worktree/Staged/History privacy gates, and a validated source ZIP artifact after success on main. Use pinned official action revisions, read-only workflow permissions, no device access, no private diagnostics, no secrets and no automatic releases. Main must require the stable `CI` check once the initial deployment passes. Future main changes go through PRs with green CI; do not bypass branch protection or force-push. This supersedes earlier CI bans for this scoped workflow only.

@@ -33,7 +33,7 @@ try{
         & (Join-Path $root 'Write-ADBMedicPreliminary.ps1') -Session $stage -Language $language -NoBrowser | Out-Null
         $report=[IO.File]::ReadAllText($md,[Text.Encoding]::UTF8)
         if($report.Contains('MANUAL-ANALYSIS-PROMPT.md')){throw 'Preliminary report suggests unavailable export'}
-        $expected=if($language -eq 'ru-RU'){'Сырые данные не экспортируются; автоматическая отправка в облако отключена.'}else{'Raw export and automatic cloud analysis are disabled.'}
+        $expected=if($language -eq 'ru-RU'){'Автоматическая отправка в облако отключена.'}else{'Automatic cloud uploads are disabled.'}
         if(-not $report.Contains($expected)){throw 'Preliminary report is missing the privacy hold'}
     }
     $blocked=$false

@@ -25,7 +25,7 @@ if(Test-Path -LiteralPath $sp){$txt=[IO.File]::ReadAllText($sp,[Text.Encoding]::
 $symptom=($symptom -replace '[\r\n|]', ' ').Trim()
 if($symptom.Length -gt 350){$symptom=$symptom.Substring(0,350)}
 
-$files=@('cpu.txt','top.txt','battery.txt','power.txt','thermal.txt','camera.txt','sensors.txt','build.txt')
+$files=@('cpu.txt','top.txt','battery.txt','battery-state.txt','power.txt','thermal.txt','camera.txt','sensors.txt','packages.txt','alarms.txt','jobs.txt','deviceidle.txt')
 $rows=New-Object System.Collections.Generic.List[string]
 foreach($name in $files){
     $path=Join-Path $folder $name
@@ -105,9 +105,9 @@ if($locale.UI -eq 'ru'){
 $md.Add('')
 $md.Add('## '+$t.confidence)
 if($locale.UI -eq 'ru'){
-    $md.Add('Статус: только сбор данных. Этот документ не подтверждает ни наличие, ни отсутствие повышенного расхода батареи. Сырые данные не экспортируются; автоматическая отправка в облако отключена.')
+    $md.Add('Статус: только сбор данных. Этот документ не подтверждает ни наличие, ни отсутствие повышенного расхода батареи. Подробная диагностика включается только в подготовленный пользовательский ZIP. Автоматическая отправка в облако отключена.')
 }else{
-    $md.Add('Status: evidence collection only. This document neither confirms nor rules out abnormal battery drain. Raw export and automatic cloud analysis are disabled.')
+    $md.Add('Status: evidence collection only. This document neither confirms nor rules out abnormal battery drain. Detailed diagnostics are included only in the prepared user ZIP. Automatic cloud uploads are disabled.')
 }
 $report=Join-Path $folder 'REPORT.md'
 [IO.File]::WriteAllText($report,($md -join [Environment]::NewLine),[Text.Encoding]::UTF8)

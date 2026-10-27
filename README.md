@@ -2,7 +2,7 @@
 
 **English** · [Русский](docs/i18n/README.ru.md) · [Español](docs/i18n/README.es.md) · [Português](docs/i18n/README.pt.md) · [Français](docs/i18n/README.fr.md) · [简体中文](docs/i18n/README.zh-CN.md)
 
-Collect Android diagnostics and view a local report. Runs on Windows without administrator rights.
+Collect Android evidence for a diagnostic conclusion and treatment plan from an AI you trust. Runs on Windows without administrator rights.
 
 ## Get started
 
@@ -16,7 +16,9 @@ irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1
 
 Confirm installation and data collection. If ADB is missing, the app will offer to download it. Allow debugging from this computer on your phone. After collection, choose **1 — open the report** or **2 — open its folder**. Nothing opens automatically; press Enter to finish.
 
-When the app confirms the safe ZIP is ready, attach **ADBMedic-report.zip** to your AI chat (ChatGPT, Claude or another) and ask it to follow the included instructions. The ZIP contains measurements and a request for clear conclusions, detailed steps and feedback. Choose 2 to find it. If your chat cannot read ZIP files, extract it and attach REPORT.md, facts.json and MANUAL-ANALYSIS-PROMPT.md.
+When the app confirms the diagnostic ZIP is ready, attach **ADBMedic-report.zip** to your trusted AI chat (ChatGPT, Claude or another) and ask it to follow the included instructions. Choose 2 to find it. If your chat cannot read ZIP files, extract it and attach REPORT.md, facts.json, MANUAL-ANALYSIS-PROMPT.md and the relevant files from evidence.
+
+The AI acts as an Android diagnostic specialist: it explains likely causes, energy use and background events by real application/package, cites measurements and their periods, and gives prioritized steps with an outcome check. When evidence is insufficient, it provides focused read-only ADB commands and explains how to return the results. Counts are reported only when actually measured; alarms, wakeups, jobs and other calls are different events. [Full AI role and answer requirements](AI-ANALYST.md).
 
 The diagnostic interface currently supports Russian and English, selected automatically from your Windows display language. Other languages use English. No mode selection or command options are needed.
 
@@ -32,7 +34,7 @@ Open PowerShell in the project folder and run:
 
 The script reads diagnostics and saves them on your computer under `%LOCALAPPDATA%\ADBMedic`. It does not change your phone settings or upload diagnostic data to the cloud.
 
-The local report is private. Share only the prepared ZIP: it contains validated numeric measurements and session-only process labels, with identities and raw logs excluded. If validation fails, no shareable ZIP is created. Automated diagnosis and automatic AI uploads are not performed; your chosen chat provides the analysis. [Export format and limitations](docs/SAFE-HANDOFF.md).
+The prepared ZIP is private diagnostic evidence: it retains your complaint, model/Android context, collection times, real package/process names and UID/PID, and detailed selected dumps. Review it and decide whether to share it with your chosen AI. Do not publish it on GitHub. Known credential/private-key patterns block packaging; this is not a guarantee that every secret is detected. Your chosen chat provides the analysis; ADBMedic does not automatically execute its advice. [Export format and limitations](docs/SAFE-HANDOFF.md).
 
 Tested with Windows PowerShell 5.1. A full run with a real phone still needs verification.
 
