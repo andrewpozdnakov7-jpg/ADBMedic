@@ -22,6 +22,8 @@ L'interface de diagnostic prend actuellement en charge le russe et l'anglais et 
 
 ## Le projet est déjà téléchargé ?
 
+Le ZIP contient **SUMMARY.md** et des données de batterie structurées dans **facts.json.analysis** : périodes, liens UID/paquet, estimations de consommation, compteurs typés et références aux lignes. Les données absentes, formats inconnus et incohérences sont explicites. Les fichiers complets restent dans evidence ; le traitement ne pose pas de diagnostic.
+
 Copiez le message de départ affiché après la collecte et envoyez-le avec le ZIP. Il figure aussi dans le rapport et dans **START-PROMPT.txt**, à côté du ZIP et à l'intérieur. L'IA répond par défaut dans la langue de Windows ; une demande explicite d'une autre langue dans le chat est prioritaire.
 
 Ouvrez PowerShell dans le dossier du projet et lancez :

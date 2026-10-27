@@ -97,6 +97,7 @@ foreach($path in @($preliminary,$viewer)){
 & $preliminary -Session $folder -Language $locale.Locale -NoBrowser | Out-Null
 $bundle=$null
 try{
+    Write-Host $t.preparing -ForegroundColor Cyan
     $bundle=& (Join-Path $root 'Package-ADBMedic.ps1') -Session $folder -Language $locale.Locale -PassThru
 }catch{
     $failure=[string]$_.Exception.Message

@@ -1,5 +1,9 @@
 # ADBMedic development rules
 
+## Current owner request: prepared battery evidence
+
+Add deterministic first-stage processing for the chosen AI: SUMMARY.md, facts.json.analysis with scoped battery windows, energy rows and typed event counters, real UID/package relationships and original source line references. Preserve complete raw evidence. Mark unsupported formats, missing data, contradictory values and output limits explicitly. Never merge windows, treat absent counters as zero, sum overlapping timers, invent app identities or declare a diagnosis. First iteration covers battery statistics; other services and system component energy remain available for targeted raw inspection. Test synthetic cases and reprocess the explicitly supplied saved session locally, never in Git/CI.
+
 ## Current owner request: answer language, starter prompt and publication
 
 The owner explicitly reauthorized GitHub publication after completing the answer-language and starter-prompt changes; the previous local-only hold is superseded. Use the normal privacy hooks, PR and required CI process. The AI answer defaults to the full Windows display locale, independently of the collector's Russian/English interface fallback. An explicit language request from the user in the AI chat takes precedence. Preserve the full locale in the handoff and do not infer the answer language from English diagnostic output or documentation. After a successful export, show a copyable starter prompt in the terminal/report and save START-PROMPT.txt beside and inside the archive; failed exports must not suggest uploading a nonexistent archive.

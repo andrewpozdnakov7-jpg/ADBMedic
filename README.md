@@ -20,6 +20,8 @@ When the app confirms the diagnostic ZIP is ready, attach **ADBMedic-report.zip*
 
 The AI acts as an Android diagnostic specialist: it explains likely causes, energy use and background events by real application/package, cites measurements and their periods, and gives prioritized steps with an outcome check. When evidence is insufficient, it provides focused read-only ADB commands and explains how to return the results. Counts are reported only when actually measured; alarms, wakeups, jobs and other calls are different events. [Full AI role and answer requirements](AI-ANALYST.md).
 
+The archive now includes **SUMMARY.md** and structured battery evidence in **facts.json.analysis**. These retain statistics windows, UID/package mappings, energy estimates, typed counters and source line references. Missing/unsupported data and inconsistencies are explicit. Complete raw files remain in evidence for targeted verification; preprocessing does not declare a diagnosis.
+
 The diagnostic interface currently supports Russian and English, selected automatically from your Windows display language. Other languages use English. No mode selection or command options are needed.
 
 ## Already downloaded the project?

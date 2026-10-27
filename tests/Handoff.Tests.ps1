@@ -29,6 +29,8 @@ try{
         Assert ($facts.schemaVersion -eq 2 -and $facts.complaint.Contains('Battery drain')) 'complaint is preserved'
         Assert ($facts.device.model -ceq 'TEST_MODEL' -and $facts.device.android -ceq '14') 'device context is retained'
         Assert (-not ($facts.PSObject.Properties.Name -contains 'battery')) 'no misleading numeric projection is fabricated'
+        Assert ($facts.analysis.version -eq 1 -and $facts.analysis.status -ceq 'unsupported') 'unknown fixture format remains explicit in the prepared analysis'
+        Assert ([IO.File]::ReadAllText((Join-Path $bundle.Directory 'SUMMARY.md')).Contains('unsupported')) 'standalone summary shows its coverage limitation'
         $top=$facts.sources|Where-Object file -eq 'evidence/top.txt'
         Assert ($top.status -eq 'collected' -and ([datetimeoffset]$top.startedUtc) -eq ([datetimeoffset]'2000-01-01T00:00:00Z') -and ([datetimeoffset]$top.finishedUtc) -eq ([datetimeoffset]'2000-01-01T00:00:08Z')) 'actual command interval is preserved'
         Assert (($facts.sources|Where-Object file -eq 'evidence/jobs.txt').status -eq 'failed') 'failed command is explicit'
@@ -51,6 +53,7 @@ try{
             $entries=@($zip.Entries|ForEach-Object {$_.FullName.Replace('\','/')})
             Assert ($entries -contains 'evidence/packages.txt' -and $entries -contains 'MANUAL-ANALYSIS-PROMPT.md') 'archive includes identities and full AI instructions'
             Assert ($entries -contains 'START-PROMPT.txt') 'starter is also included inside the ZIP'
+            Assert ($entries -contains 'SUMMARY.md') 'prepared summary is included alongside complete raw evidence'
             Assert (-not ($entries -contains 'unrelated.txt') -and -not ($entries -contains 'profile.json')) 'only selected evidence and projected context are packaged'
         }finally{$zip.Dispose()}
         $blocked=$false;try{New-ADBMedicDiagnosticBundle $session $ui|Out-Null}catch{$blocked=$true}
