@@ -1,5 +1,9 @@
 # ADBMedic development rules
 
+## Current owner request: GitHub CI/CD
+
+The owner explicitly authorized GitHub Actions CI/CD. The only approved workflow is `.github/workflows/ci.yml`: Windows PowerShell 5.1/7 synthetic tests, Worktree/Staged/History privacy gates, and a validated source ZIP artifact after success on main. Use pinned official action revisions, read-only workflow permissions, no device access, no private diagnostics, no secrets and no automatic releases. Main must require the stable `CI` check once the initial deployment passes. Future main changes go through PRs with green CI; do not bypass branch protection or force-push. This supersedes earlier CI bans for this scoped workflow only.
+
 ## Current owner request: manual safe report handoff
 
 The owner explicitly authorized the next safe-export stage: no automatic report opening; a two-choice report/folder menu; a portable ZIP of validated measurements and an AI instruction file, manually attached by the user to any suitable AI chat. Preserve enough numeric CPU/battery/power/thermal context, require plain-language evidence-based advice and detailed user feedback steps, and keep raw logs/identities/free-text complaints private. A closed-schema derived-facts export is permitted after validation; raw ZIP export and automatic cloud analysis remain prohibited. This explicit scope supersedes the previous instruction to stop after TASK-001, without authorizing unrelated diagnostic features.

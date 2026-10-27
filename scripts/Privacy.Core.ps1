@@ -54,6 +54,15 @@ function Get-PrivacyRules {
     }
 }
 
+function Get-PrivacyApprovedActionRefs {
+    # Public code revisions, verified against the official action release tags.
+    # This is not a general exception for hashes or arbitrary action versions.
+    return @(
+        'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
+        'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9'
+    )
+}
+
 function Test-PrivacyAllowedValue {
     param([string]$Category, [string]$Value)
     if ($Category -eq 'email') {
@@ -72,6 +81,9 @@ function Get-PrivacyTextFindings {
     $lines = $Text -split '\r?\n'
     for ($index=0; $index -lt $lines.Count; $index++) {
         $line = $lines[$index]
+        foreach($reference in [regex]::Matches($line,'\bactions/(?:checkout|upload-artifact)@[a-f0-9]{40}\b')){
+            if((Get-PrivacyApprovedActionRefs) -ccontains $reference.Value){$line=$line.Replace($reference.Value,'APPROVED_PUBLIC_ACTION_REVISION')}
+        }
         # Approved public URLs can legitimately contain a Git commit hash.
         foreach ($match in [regex]::Matches($line, $rules['url'])) {
             if (Test-PrivacyAllowedValue 'url' $match.Value) { $line = $line.Replace($match.Value, 'PUBLIC_PROJECT_REFERENCE') }
@@ -89,6 +101,7 @@ function Get-PrivacyTextFindings {
 
 function Test-PrivacyForbiddenPath {
     param([string]$Name)
+    if($Name -ceq '.github/workflows/ci.yml'){return $false}
     return $Name -match '(?i)(^|/)(?:\.git|\.github|data|tools|sessions|reports|exports|private-local|raw|app|\.test-work|\.vscode|\.idea)(/|$)|(^|/)\.env(?:\.|$)|\.(?:zip|7z|tar|gz|log|tmp|bak|secret|token|exe|dll|apk|aab|bin|jks|keystore|p12|pfx|pem|key|cer|crt|der)$|(^|/)(?:profile|device|locale)\.json$|(^|/)(?:REPORT\.(?:html|md)|(?:bugreport|logcat).*|symptom\.txt|(?:cpu|top|battery|power|thermal|camera|sensors|build)\.txt)$'
 }
 
@@ -122,7 +135,8 @@ function Get-PrivacyTreeFiles {
     $directory = if ($Relative) { Join-Path $Root $Relative } else { $Root }
     foreach ($item in Get-ChildItem -LiteralPath $directory -Force) {
         $name = if ($Relative) { $Relative + '/' + $item.Name } else { $item.Name }
-        if ($item.PSIsContainer -and (Test-PrivacyForbiddenPath ($name + '/'))) { continue }
+        $ciAncestor=$name -ceq '.github' -or $name -ceq '.github/workflows'
+        if ($item.PSIsContainer -and -not $ciAncestor -and (Test-PrivacyForbiddenPath ($name + '/'))) { continue }
         if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
             [pscustomobject]@{Name=$name; Path=$null; Mode='120000'}
         } elseif ($item.PSIsContainer) { Get-PrivacyTreeFiles $Root $name }

@@ -25,6 +25,19 @@ function Git([string]$Path,[string[]]$Arguments) {
 try {
     $fixture=New-Fixture 'TEST проверка с пробелами'
     Assert (@(Invoke-PrivacyAudit $fixture).Count -eq 0) 'clean source passes'
+    $approvedAction=(Get-PrivacyApprovedActionRefs)[0]
+    Assert (@(Get-PrivacyTextFindings ('uses: '+$approvedAction) 'TEST.yml').Count -eq 0) 'exact verified public action revision is not treated as a device hash'
+    Assert (@(Get-PrivacyTextFindings ('uses: actions/checkout@'+('f'*40)) 'TEST.yml').Count -gt 0) 'unapproved action revisions do not get a blanket hash exception'
+    $ciPath=Join-Path $fixture '.github/workflows/ci.yml'
+    Write-TestText $ciPath '# TEST_SYNTHETIC_WORKFLOW'
+    Assert (@(Invoke-PrivacyAudit $fixture).Count -gt 0) 'approved workflow still requires a manifest entry'
+    Write-TestText (Join-Path $fixture 'source-manifest.json') (@{files=@('README.md','source-manifest.json','.github/workflows/ci.yml')}|ConvertTo-Json)
+    Assert (@(Invoke-PrivacyAudit $fixture).Count -eq 0) 'exact authorized CI workflow is audited as source'
+    $blocked=$false
+    try{Get-PrivacyManifest ([Text.Encoding]::UTF8.GetBytes((@{files=@('source-manifest.json','.github/workflows/TEST-extra.yml')}|ConvertTo-Json)))|Out-Null}catch{$blocked=$true}
+    Assert $blocked 'other automation files remain forbidden'
+    [IO.File]::Delete($ciPath)
+    Write-TestText (Join-Path $fixture 'source-manifest.json') (@{files=@('README.md','source-manifest.json')}|ConvertTo-Json)
     $cases=@(
         @{Category='home-path'; Value=('C:'+[char]92+'Users'+[char]92+'TEST_PRIVATE'+[char]92+'file')},
         @{Category='home-path'; Value=('/ho'+'me/TEST_PRIVATE/file')},
