@@ -1,5 +1,9 @@
 # ADBMedic development rules
 
+## Current owner request: answer language, starter prompt and publication
+
+The owner explicitly reauthorized GitHub publication after completing the answer-language and starter-prompt changes; the previous local-only hold is superseded. Use the normal privacy hooks, PR and required CI process. The AI answer defaults to the full Windows display locale, independently of the collector's Russian/English interface fallback. An explicit language request from the user in the AI chat takes precedence. Preserve the full locale in the handoff and do not infer the answer language from English diagnostic output or documentation. After a successful export, show a copyable starter prompt in the terminal/report and save START-PROMPT.txt beside and inside the archive; failed exports must not suggest uploading a nonexistent archive.
+
 ## Current owner request: diagnostic AI handoff v2
 
 The product goal is an evidence-based Android diagnosis, actionable treatment and follow-up examinations by the user's manually chosen AI. Diagnostic ZIPs intentionally retain the complaint, device model/Android context, real packages/processes and UID/PID, timestamps and detailed allowlisted diagnostic dumps. Source/GitHub deanonymization gates remain mandatory and never permit diagnostic archives in Git or CI artifacts. Known credentials/private keys block handoff. No automatic uploads or execution of AI advice. Collection and follow-up ADB examinations remain read-only. The AI must distinguish event counter types and windows, justify hypotheses, provide reversible steps and prescribe focused additional ADB commands when evidence is missing. AI-ANALYST.md is the self-contained shipped contract. This explicit owner decision supersedes older numeric-only/P-label export rules; the legacy v1 projector is retained only for compatibility tests.

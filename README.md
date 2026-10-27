@@ -24,6 +24,8 @@ The diagnostic interface currently supports Russian and English, selected automa
 
 ## Already downloaded the project?
 
+Copy the starter prompt printed after collection into the chat together with the ZIP. It is also in the report and **START-PROMPT.txt** beside the ZIP and inside it. The AI answer defaults to your Windows display language; an explicit request for another language in the chat takes priority.
+
 Open PowerShell in the project folder and run:
 
 ```powershell
