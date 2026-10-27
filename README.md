@@ -2,31 +2,44 @@
 
 **English** · [Русский](docs/i18n/README.ru.md) · [Español](docs/i18n/README.es.md) · [Português](docs/i18n/README.pt.md) · [Français](docs/i18n/README.fr.md) · [简体中文](docs/i18n/README.zh-CN.md)
 
-Collect Android evidence for a diagnostic conclusion and treatment plan from an AI you trust. Runs on Windows without administrator rights.
+Phone draining too fast or getting hot? ADBMedic prepares a report for an AI you trust, so it can help investigate and suggest what to do next.
 
-## Get started
+You need an **Android phone, a Windows computer and a USB cable that transfers data**. Nothing needs to be installed on the phone.
 
-1. Connect your phone by USB and enable USB debugging on it.
-2. Open a regular **Windows PowerShell** window.
-3. Paste this command:
+## 1. Prepare your phone
+
+1. Open **Settings → About phone → Build number**. It may be under **Software information**. Tap it **7 times** and enter your phone PIN if asked.
+2. Find **Developer options** in Settings and turn on **USB debugging**. Menu names vary; Settings search can help.
+3. Unlock your phone and connect it to your own computer by USB.
+
+## 2. Run on your computer
+
+Open Start, type **Windows PowerShell** and open it normally. Administrator rights are not needed.
+
+Copy this command, paste it into PowerShell and press **Enter**:
 
 ```powershell
 irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1 | iex
 ```
 
-Confirm installation and data collection. If ADB is missing, the app will offer to download it. Allow debugging from this computer on your phone. After collection, choose **1 — open the report** or **2 — open its folder**. Nothing opens automatically; press Enter to finish.
+- Confirm installation and collection with **y**, then Enter. If it offers to download a required tool, confirm that too.
+- Watch the phone: if **Allow USB debugging?** appears, tap **Allow** for your computer.
+- Describe the problem, for example: “The battery drops a lot overnight.” Wait for collection to finish.
 
-When the app confirms the diagnostic ZIP is ready, attach **ADBMedic-report.zip** to your trusted AI chat (ChatGPT, Claude or another) and ask it to follow the included instructions. Choose 2 to find it. If your chat cannot read ZIP files, extract it and attach REPORT.md, facts.json, MANUAL-ANALYSIS-PROMPT.md and the relevant files from evidence.
+## 3. Send the result to your AI
 
-The AI acts as an Android diagnostic specialist: it explains likely causes, energy use and background events by real application/package, cites measurements and their periods, and gives prioritized steps with an outcome check. When evidence is insufficient, it provides focused read-only ADB commands and explains how to return the results. Counts are reported only when actually measured; alarms, wakeups, jobs and other calls are different events. [Full AI role and answer requirements](AI-ANALYST.md).
+1. Choose **2** in PowerShell to open the report folder. Choose **1** if you want to view the report yourself.
+2. Attach **ADBMedic-report.zip** to ChatGPT, Claude or another AI you trust.
+3. Paste the starter prompt shown in PowerShell. The same text is saved in **START-PROMPT.txt** beside the ZIP.
 
-The archive now includes **SUMMARY.md** and structured battery evidence in **facts.json.analysis**. These retain statistics windows, UID/package mappings, energy estimates, typed counters and source line references. Missing/unsupported data and inconsistencies are explicit. Complete raw files remain in evidence for targeted verification; preprocessing does not declare a diagnosis.
+The AI should explain what the evidence shows, give steps to try, or ask for a specific additional check. Its answer defaults to your Windows language; you can ask for another.
 
-The diagnostic interface currently supports Russian and English, selected automatically from your Windows display language. Other languages use English. No mode selection or command options are needed.
+**Phone not found?** Unlock it, check the debugging permission, and try another data cable or USB port. If no ZIP was created, keep the error message; do not zip the whole folder yourself.
 
-## Already downloaded the project?
+The report contains private details about your phone and apps. The script uploads nothing automatically. Share the ZIP only with the AI you choose, not on GitHub. You can turn off USB debugging afterward. The script interface currently uses Russian or English.
 
-Copy the starter prompt printed after collection into the chat together with the ZIP. It is also in the report and **START-PROMPT.txt** beside the ZIP and inside it. The AI answer defaults to your Windows display language; an explicit request for another language in the chat takes priority.
+<details>
+<summary>Already downloaded the project?</summary>
 
 Open PowerShell in the project folder and run:
 
@@ -34,12 +47,6 @@ Open PowerShell in the project folder and run:
 .\bootstrap.ps1
 ```
 
-## Your data
+</details>
 
-The script reads diagnostics and saves them on your computer under `%LOCALAPPDATA%\ADBMedic`. It does not change your phone settings or upload diagnostic data to the cloud.
-
-The prepared ZIP is private diagnostic evidence: it retains your complaint, model/Android context, collection times, real package/process names and UID/PID, and detailed selected dumps. Review it and decide whether to share it with your chosen AI. Do not publish it on GitHub. Known credential/private-key patterns block packaging; this is not a guarantee that every secret is detected. Your chosen chat provides the analysis; ADBMedic does not automatically execute its advice. [Export format and limitations](docs/SAFE-HANDOFF.md).
-
-Tested with Windows PowerShell 5.1. A full run with a real phone still needs verification.
-
-[Developer guide: tests, Git protection and advanced options](docs/DEVELOPMENT.md) · [MIT license](LICENSE)
+[Technical details and development](docs/DEVELOPMENT.md) · [MIT license](LICENSE)

@@ -2,42 +2,51 @@
 
 [English](../../README.md) · [Русский](README.ru.md) · [Español](README.es.md) · **Português** · [Français](README.fr.md) · [简体中文](README.zh-CN.md)
 
-Coleta dados de diagnóstico do Android e abre um relatório local. Funciona no Windows sem permissões de administrador.
+O telefone descarrega rápido ou esquenta? O ADBMedic prepara um relatório para uma IA de confiança, que pode ajudar a investigar e indicar o que fazer.
 
-## Primeiros passos
+Você precisa de **um telefone Android, um computador com Windows e um cabo USB que transfira dados**. Não é necessário instalar aplicativo no telefone.
 
-1. Conecte o telefone por USB e ative a depuração USB nele.
-2. Abra uma janela normal do **Windows PowerShell**.
-3. Cole este comando:
+## 1. Prepare o telefone
+
+1. Abra **Configurações → Sobre o telefone → Número da versão**. Pode estar em **Informações do software** ou aparecer como **Número da compilação**. Toque **7 vezes** e informe o PIN do telefone se solicitado.
+2. Encontre **Opções do desenvolvedor** e ative **Depuração USB**. Os nomes variam; use a busca das Configurações se necessário.
+3. Desbloqueie o telefone e conecte-o por USB ao seu próprio computador.
+
+## 2. Execute no computador
+
+Abra Iniciar, digite **Windows PowerShell** e abra normalmente. Não precisa de permissões de administrador.
+
+Copie o comando, cole no PowerShell e pressione **Enter**:
 
 ```powershell
 irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1 | iex
 ```
 
-Confirme a instalação e a coleta de dados. Se o ADB não estiver disponível, o aplicativo oferecerá o download. No telefone, autorize a depuração a partir deste computador. Ao terminar, escolha **1 — abrir o relatório** ou **2 — abrir a pasta dele**. Nada abre automaticamente; pressione Enter para encerrar.
+- Confirme a instalação e a coleta com **y**, depois Enter. Se oferecer o download de uma ferramenta necessária, confirme também.
+- Olhe o telefone: se aparecer **Permitir depuração USB?**, toque em **Permitir** para o seu computador.
+- Descreva o problema, por exemplo: “A bateria cai muito durante a noite”. Aguarde a conclusão.
 
-Quando o ZIP de diagnóstico estiver pronto, anexe **ADBMedic-report.zip** a uma IA de confiança e peça que siga as instruções. A IA investiga causas, explica o consumo por aplicativo real com valores, tipos de eventos e períodos, propõe ações e verifica o resultado. Se faltarem dados, fornece comandos ADB específicos de somente leitura com explicações. [Contrato da IA](../../AI-ANALYST.md). A opção 2 abre a pasta. Sem suporte a ZIP, anexe REPORT.md, facts.json, MANUAL-ANALYSIS-PROMPT.md e os arquivos pertinentes de evidence.
+## 3. Envie o resultado à sua IA
 
-A interface de diagnóstico atualmente oferece russo e inglês e escolhe o idioma conforme o idioma de exibição do Windows. Para os demais idiomas, usa o inglês. Não é preciso escolher um modo nem adicionar parâmetros ao comando.
+1. Escolha **2** no PowerShell para abrir a pasta do relatório. A opção **1** mostra o relatório.
+2. Anexe **ADBMedic-report.zip** ao ChatGPT, Claude ou outra IA de confiança.
+3. Cole a mensagem inicial exibida no PowerShell. O mesmo texto está em **START-PROMPT.txt**, ao lado do ZIP.
 
-## Já baixou o projeto?
+A IA deve explicar as observações, sugerir passos ou pedir uma verificação adicional específica. A resposta usa por padrão o idioma do Windows; você pode pedir outro.
 
-O ZIP inclui **SUMMARY.md** e dados de bateria estruturados em **facts.json.analysis**: períodos, relações UID/pacote, estimativas de consumo, tipos de contadores e referências às linhas. Dados ausentes, formatos desconhecidos e inconsistências são explícitos. Os originais completos continuam em evidence; o processamento não declara um diagnóstico.
+**Telefone não encontrado?** Desbloqueie-o, confira a autorização de depuração e tente outro cabo de dados ou porta USB. Se o ZIP não foi criado, guarde a mensagem de erro; não compacte a pasta inteira por conta própria.
 
-Copie a mensagem inicial exibida após a coleta e envie junto com o ZIP. Ela também está no relatório e em **START-PROMPT.txt**, ao lado do ZIP e dentro dele. A IA responde por padrão no idioma do Windows; um pedido explícito de outro idioma no chat tem prioridade.
+O relatório contém informações privadas do telefone e dos aplicativos. O script não envia nada automaticamente. Compartilhe o ZIP apenas com a IA escolhida, não no GitHub. Depois você pode desativar a depuração USB. A interface do script está em russo ou inglês.
 
-Abra o PowerShell na pasta do projeto e execute:
+<details>
+<summary>Já baixou o projeto?</summary>
+
+Abra PowerShell na pasta do projeto e execute:
 
 ```powershell
 .\bootstrap.ps1
 ```
 
-## Seus dados
+</details>
 
-O script lê os dados de diagnóstico e os salva no seu computador em `%LOCALAPPDATA%\ADBMedic`. Ele não altera as configurações do telefone nem envia dados de diagnóstico para a nuvem.
-
-O ZIP é privado: preserva a queixa, modelo/Android, horários da coleta, nomes reais de processos e pacotes, UID/PID e diagnósticos detalhados. Revise antes de compartilhar com a IA escolhida. Não publique no GitHub. Padrões conhecidos de credenciais e chaves privadas bloqueiam o empacotamento; não há garantia de detectar todos os segredos. Nenhum envio ou conselho é executado automaticamente. [Formato e limites](../SAFE-HANDOFF.md).
-
-Testado com Windows PowerShell 5.1. Uma execução completa com um telefone real ainda precisa ser verificada.
-
-[Guia do desenvolvedor: testes, proteção do Git e opções avançadas](../DEVELOPMENT.md) · [Licença MIT](../../LICENSE)
+[Detalhes técnicos e desenvolvimento](../DEVELOPMENT.md) · [Licença MIT](../../LICENSE)
