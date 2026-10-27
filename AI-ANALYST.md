@@ -22,6 +22,8 @@ This instruction is self-contained. If browsing is available, the project README
 
 Check collection results, file sizes, missing/failed commands, actual capture timestamps and the periods described inside each source. A file's capture duration is NOT the period covered by historical counters. Do not mix statistics windows, Android users, UID totals and individual processes. Keep source line references and original units. Missing, unsupported or permission-denied data means unknown, never zero.
 
+Large source files may exceed a chat's text-reading limit. Use attachment tools, section searches and bounded reads for the relevant packages, counters and windows; disclose any unread or truncated evidence. Do not claim the whole dump/history was checked from a preview. The package mapping can cover only the current Android user; packages of other profiles can remain unknown.
+
 Compare aggregate energy with the attributed entries only when source section, units, measurement model and window agree. If an app estimate exceeds the reported aggregate, investigate section/window/parser mismatches before ranking or recommending action. Android mAh values are estimates, not a direct battery-capacity or health measurement. Do not infer battery wear from a single capacity field or a short snapshot.
 
 CPU snapshots cover seconds; historical energy, wake locks and event counters may cover hours or days. Normalize CPU correctly using the source's CPU total; per-process usage can exceed one core's 100%. USB collection can power the phone and create load. Current thermal status does not establish temperature history. Do not calculate drain per hour or percent per hour unless the relevant start/end values and common duration are known.
