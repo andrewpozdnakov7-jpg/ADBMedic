@@ -4,7 +4,8 @@ $testRoot=Join-Path $root ('.test-work/runtime-'+[guid]::NewGuid().ToString('N')
 [IO.Directory]::CreateDirectory($testRoot) | Out-Null
 $savedLocalData=$env:LOCALAPPDATA
 $savedTemp=$env:TEMP
-$runtimeTestState=@{Case='success'; Calls=@(); Network=0; Cloud=0; Browser=0; Prompts=0; Passed=0; LocaleReads=0}
+$savedUICulture=[Threading.Thread]::CurrentThread.CurrentUICulture
+$runtimeTestState=@{Case='success'; Calls=@(); Network=0; Cloud=0; Browser=0; Prompts=0; PromptTexts=@(); Passed=0; LocaleReads=0}
 function Assert([bool]$Condition,[string]$Description) {
     if (-not $Condition) { throw ('Runtime safety test failed: '+$Description) }
     $runtimeTestState.Passed++
@@ -21,6 +22,7 @@ function Get-Command {
 function Read-Host {
     param($Prompt)
     $runtimeTestState.Prompts++
+    $runtimeTestState.PromptTexts+=@([string]$Prompt)
     if ($runtimeTestState.Case -eq 'decline') { return 'n' }
     if ($runtimeTestState.Prompts -eq 1) { return 'y' }
     if ($runtimeTestState.Case -in @('enumeration-failure','unauthorized','offline','no-device')) { return 'q' }
@@ -96,11 +98,23 @@ try {
         Assert ($call[0] -in @('start-server','devices','-s')) 'only expected ADB entry points are used'
         Assert (@($call | Where-Object { $_ -in @('root','reboot','kill','kill-server','install','uninstall','disable','clear','flash','setprop') }).Count -eq 0) 'no device changes are requested'
     }
+    foreach($culture in @('ru-RU','en-US')) {
+        [Threading.Thread]::CurrentThread.CurrentUICulture=[Globalization.CultureInfo]::GetCultureInfo($culture)
+        $runtimeTestState.Case='no-device'
+        $runtimeTestState.Prompts=0
+        $runtimeTestState.PromptTexts=@()
+        $log=@(& (Join-Path $root 'bootstrap.ps1') *>&1)
+        Assert ($runtimeTestState.Prompts -eq 2) 'plain bootstrap asks only for collection consent and device retry'
+        $expectedPrompt=if($culture -eq 'ru-RU'){'Собирать диагностические данные?'}else{'Collect diagnostics?'}
+        Assert ($runtimeTestState.PromptTexts[0].StartsWith($expectedPrompt)) 'plain bootstrap uses the Windows UI language'
+        Assert (-not (($log -join "`n") -match 'Mode|Codex|offline')) 'plain bootstrap has no technical mode choices'
+    }
     Assert ($runtimeTestState.Network -eq 0 -and $runtimeTestState.Cloud -eq 0 -and $runtimeTestState.Browser -eq 0) 'synthetic diagnostics make no network/cloud/browser calls'
     Write-Host ('Offline runtime safety tests: PASS ('+$runtimeTestState.Passed+' assertions).')
 } finally {
     $env:LOCALAPPDATA=$savedLocalData
     $env:TEMP=$savedTemp
+    [Threading.Thread]::CurrentThread.CurrentUICulture=$savedUICulture
     $target=[IO.Path]::GetFullPath($testRoot)
     $prefix=[IO.Path]::GetFullPath((Join-Path $root '.test-work')).TrimEnd([char[]]'\/')+[IO.Path]::DirectorySeparatorChar
     if (-not $target.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe test cleanup target.' }

@@ -1,5 +1,9 @@
 # ADBMedic development rules
 
+## Current owner request: simple startup
+
+The owner requested a short user README and startup without mode/language flags. Make local `bootstrap.ps1` work without arguments, select the Windows UI language automatically, and provide one remote launch command. This is a usability change to the existing local workflow, not permission to implement TASK-002 or enable diagnostic export/cloud analysis. Existing publication audits and branch/PR workflow remain mandatory.
+
 ## Current TASK-001 authorization
 
 - ChatGPT is architect and technical lead; Codex is the primary developer; the owner tests on Windows/Android.
