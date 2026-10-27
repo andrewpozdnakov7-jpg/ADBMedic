@@ -1,35 +1,37 @@
 # ADBMedic
 
-Собирает диагностику Android и открывает понятный локальный отчёт. Работает в Windows, права администратора не нужны.
+**English** · [Русский](docs/i18n/README.ru.md) · [Español](docs/i18n/README.es.md) · [Português](docs/i18n/README.pt.md) · [Français](docs/i18n/README.fr.md) · [简体中文](docs/i18n/README.zh-CN.md)
 
-## Запуск
+Collect Android diagnostics and view a local report. Runs on Windows without administrator rights.
 
-1. Подключите телефон по USB и включите на нём отладку по USB.
-2. Откройте обычный **Windows PowerShell**.
-3. Вставьте команду:
+## Get started
+
+1. Connect your phone by USB and enable USB debugging on it.
+2. Open a regular **Windows PowerShell** window.
+3. Paste this command:
 
 ```powershell
 irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1 | iex
 ```
 
-Подтвердите установку и сбор данных. Если ADB ещё нет, программа предложит его скачать. На телефоне разрешите отладку для этого компьютера. После сбора отчёт откроется в браузере.
+Confirm installation and data collection. If ADB is missing, the app will offer to download it. Allow debugging from this computer on your phone. The report will open in your browser after collection.
 
-Язык выбирается автоматически по языку Windows: русский или английский. Выбирать режим или указывать параметры не нужно.
+The diagnostic interface currently supports Russian and English, selected automatically from your Windows display language. Other languages use English. No mode selection or command options are needed.
 
-## Если проект уже скачан
+## Already downloaded the project?
 
-Откройте PowerShell в папке проекта и запустите:
+Open PowerShell in the project folder and run:
 
 ```powershell
 .\bootstrap.ps1
 ```
 
-## Что происходит с данными
+## Your data
 
-Скрипт читает диагностику и сохраняет её на вашем компьютере в `%LOCALAPPDATA%\ADBMedic`. Настройки телефона он не меняет. В облако данные не отправляются.
+The script reads diagnostics and saves them on your computer under `%LOCALAPPDATA%\ADBMedic`. It does not change your phone settings or upload diagnostic data to the cloud.
 
-Сейчас отчёт показывает результаты сбора; автоматического диагноза пока нет. Отправка данных в ИИ и экспорт диагностического ZIP отключены. Локальные файлы могут содержать личные данные — не публикуйте их.
+The report currently summarizes collected data; automated diagnosis is not available yet. AI uploads and diagnostic ZIP export are disabled. Local files may contain personal information; keep them private.
 
-Проверено в Windows PowerShell 5.1. Полный запуск с реальным телефоном ещё требует проверки.
+Tested with Windows PowerShell 5.1. A full run with a real phone still needs verification.
 
-[Для разработчика: проверки, защита Git и дополнительные параметры](docs/DEVELOPMENT.md) · [Лицензия MIT](LICENSE)
+[Developer guide: tests, Git protection and advanced options](docs/DEVELOPMENT.md) · [MIT license](LICENSE)
