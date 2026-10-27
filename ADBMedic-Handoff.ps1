@@ -24,8 +24,23 @@ function Read-ADBMedicDiagnosticText {
     return $text
 }
 
+function New-ADBMedicStartPrompt {
+    param([ValidateSet('ru','en')][string]$UI,[Globalization.CultureInfo]$AnswerCulture)
+    $text=if($UI -eq 'ru'){
+        'Прикладываю диагностический архив ADBMedic-report.zip моего Android-телефона. Прочитай MANUAL-ANALYSIS-PROMPT.md и следуй ему, затем изучи REPORT.md, facts.json и относящиеся к жалобе файлы evidence. Выступи специалистом по диагностике Android: дай заключение с доказательствами, объясни вероятные причины и расход по реальным приложениям, укажи значения, типы и периоды измеренных событий. Дай понятный пошаговый план действий и способ проверить результат. Если данных не хватает, предложи конкретные read-only ADB-команды: зачем, как выполнить, куда сохранить вывод и что прислать. Не выдумывай отсутствующие показатели. Если архив недоступен, сообщи об этом и объясни, какие файлы приложить отдельно.'
+    }else{
+        'I am attaching ADBMedic-report.zip with diagnostics from my Android phone. Read and follow MANUAL-ANALYSIS-PROMPT.md, then inspect REPORT.md, facts.json and the evidence relevant to my complaint. Act as an Android diagnostic specialist: give an evidence-based conclusion, explain likely causes and energy use by real application, and report values, types and windows of measured events. Provide a clear step-by-step action plan and an outcome check. If evidence is missing, prescribe focused read-only ADB commands: why, how to run them, where to save output and what to send back. Do not invent missing measurements. If you cannot access the archive, say so and explain which files to attach separately.'
+    }
+    return $text+"`n`n"+$(if($UI -eq 'ru'){'Язык ответа по умолчанию: '}else{'Default answer language: '})+$AnswerCulture.NativeName+' ('+$AnswerCulture.Name+'). '+$(if($UI -eq 'ru'){'Если я явно попрошу другой язык в чате, используй его.'}else{'If I explicitly request another language in this chat, use that language instead.'})
+}
+
 function New-ADBMedicDiagnosticBundle {
-    param([string]$Session,[ValidateSet('ru','en')][string]$UI='en')
+    param([string]$Session,[ValidateSet('ru','en')][string]$UI='en',[string]$AnswerLocale='')
+    if([string]::IsNullOrWhiteSpace($AnswerLocale)){$AnswerLocale=[Globalization.CultureInfo]::CurrentUICulture.Name}
+    if([string]::IsNullOrWhiteSpace($AnswerLocale)){$AnswerLocale='en-US'}
+    if($AnswerLocale -notmatch '^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,8})*$'){throw 'Invalid answer locale.'}
+    $answerCulture=[Globalization.CultureInfo]::GetCultureInfo($AnswerLocale)
+    $AnswerLocale=$answerCulture.Name
     $Session=Resolve-ADBMedicPrivateSession $Session
     $destination=Join-Path $Session 'exports'
     if(Test-Path -LiteralPath $destination){throw 'An export already exists; collect a new session.'}
@@ -66,12 +81,15 @@ function New-ADBMedicDiagnosticBundle {
             $sources+=[pscustomobject][ordered]@{file=('evidence/'+$name);status=$status;bytes=$size;startedUtc=$started;finishedUtc=$finished;exitCode=$exitCode}
         }
         if(-not $available){throw 'No diagnostic evidence was collected.'}
-        $facts=[ordered]@{schemaVersion=2;format='adbmedic-diagnostic-evidence';language=$UI;complaint=$complaint;device=$context;sources=$sources;notes=@('Capture times describe command execution, not historical counter windows.','Evidence retains real packages and UID/PID; there is no numeric P-label projection.','Unknown source formats are preserved for analysis; no computed energy totals are inferred.')}
-        $intro=if($UI -eq 'ru'){'Ты — специалист по диагностике Android. Ответь по-русски простым языком. Найди вероятные причины жалобы, объясни расход по приложениям и составь план действий. Если данных мало, назначь конкретные дополнительные read-only ADB-команды. Следуй полному контракту ниже.'}else{'You are an Android diagnostic specialist. Answer in clear English. Investigate causes, explain application energy use and provide an actionable plan. When evidence is missing, prescribe focused read-only ADB examinations. Follow the complete contract below.'}
+        $facts=[ordered]@{schemaVersion=2;format='adbmedic-diagnostic-evidence';language=$AnswerLocale;interfaceLanguage=$UI;complaint=$complaint;device=$context;sources=$sources;notes=@('Capture times describe command execution, not historical counter windows.','Evidence retains real packages and UID/PID; there is no numeric P-label projection.','Unknown source formats are preserved for analysis; no computed energy totals are inferred.')}
+        $intro=if($UI -eq 'ru'){'Ты — специалист по диагностике Android. Найди вероятные причины жалобы, объясни расход по приложениям и составь понятный план действий. Если данных мало, назначь конкретные дополнительные read-only ADB-команды. Следуй полному контракту ниже.'}else{'You are an Android diagnostic specialist. Investigate causes, explain application energy use and provide an actionable plan in plain language. When evidence is missing, prescribe focused read-only ADB examinations. Follow the complete contract below.'}
+        $intro+="`n`nDefault answer language: "+$answerCulture.NativeName+' ('+$AnswerLocale+'). Use this Windows display locale unless the user explicitly requests another language in the AI chat; that request takes precedence. The report/interface language and English technical evidence do not override the answer language.'
         $guide=[IO.File]::ReadAllText((Join-Path $PSScriptRoot 'AI-ANALYST.md'))
         $prompt=$intro+"`n`n"+$guide
+        $starter=New-ADBMedicStartPrompt -UI $UI -AnswerCulture $answerCulture
         [IO.File]::WriteAllText((Join-Path $share 'facts.json'),($facts|ConvertTo-Json -Depth 8),$utf8)
         [IO.File]::WriteAllText((Join-Path $share 'MANUAL-ANALYSIS-PROMPT.md'),$prompt,$utf8)
+        [IO.File]::WriteAllText((Join-Path $share 'START-PROMPT.txt'),$starter,$utf8)
         $lines=New-Object 'System.Collections.Generic.List[string]'
         $lines.Add('# ADBMedic')
         $lines.Add('')
@@ -91,6 +109,13 @@ function New-ADBMedicDiagnosticBundle {
             $lines.Add('This private archive retains the complaint, model/Android, capture times, real process/package names and UID/PID, and detailed dumps. Review it and share only with your chosen AI. Do not publish it on GitHub. Known-secret pattern checks do not guarantee detection of every secret.')
         }
         $lines.Add('')
+        $lines.Add($(if($UI -eq 'ru'){'Язык ответа ИИ по умолчанию: '}else{'Default AI answer language: '})+$answerCulture.NativeName+' ('+$AnswerLocale+').')
+        $lines.Add('')
+        $lines.Add($(if($UI -eq 'ru'){'## Стартовый промпт — скопируйте в чат вместе с ZIP'}else{'## Start prompt — copy into the chat with the ZIP'}))
+        $lines.Add('START-PROMPT.txt')
+        $lines.Add('')
+        $lines.Add($starter)
+        $lines.Add('')
         $lines.Add($(if($UI -eq 'ru'){'## Контекст пользователя — диагностические данные'}else{'## User context — diagnostic data'}))
         foreach($line in (([string]$context.model+' / Android '+[string]$context.android+"`n"+$complaint) -split '\r?\n')){$lines.Add('> '+$line)}
         $lines.Add('')
@@ -101,7 +126,7 @@ function New-ADBMedicDiagnosticBundle {
         $lines.Add('Read facts.json for the complaint, device context and per-command times. Read the source files for counter definitions and historical windows. No numeric energy summary has been inferred or silently combined across sections.')
         [IO.File]::WriteAllText((Join-Path $share 'REPORT.md'),($lines -join "`n"),$utf8)
         & (Join-Path $PSScriptRoot 'Show-ADBMedicReport.ps1') -InputFile (Join-Path $share 'REPORT.md') -Language $(if($UI -eq 'ru'){'ru-RU'}else{'en-US'}) -Deterministic|Out-Null
-        $files=@('REPORT.md','REPORT.html','facts.json','MANUAL-ANALYSIS-PROMPT.md')+@($sources|Where-Object status -ne missing|ForEach-Object {$_.file})
+        $files=@('REPORT.md','REPORT.html','facts.json','MANUAL-ANALYSIS-PROMPT.md','START-PROMPT.txt')+@($sources|Where-Object status -ne missing|ForEach-Object {$_.file})
         foreach($name in $files){Assert-ADBMedicDiagnosticText ([IO.File]::ReadAllText((Join-Path $share $name)))}
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         $archivePath=Join-Path $stage 'ADBMedic-report.zip'
@@ -122,7 +147,7 @@ function New-ADBMedicDiagnosticBundle {
         }finally{$archive.Dispose()}
         [IO.File]::Move($archivePath,(Join-Path $share 'ADBMedic-report.zip'))
         [IO.Directory]::Move($share,$destination)
-        return [pscustomobject]@{Ready=$true;Directory=$destination;ArchiveName='ADBMedic-report.zip';PrivateSubjects=@();SchemaVersion=2}
+        return [pscustomobject]@{Ready=$true;Directory=$destination;ArchiveName='ADBMedic-report.zip';PrivateSubjects=@();SchemaVersion=2;StarterPrompt=$starter;StarterPromptFile='START-PROMPT.txt'}
     }finally{
         $target=[IO.Path]::GetFullPath($stage)
         if($target.StartsWith($Session+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase) -and [IO.Path]::GetFileName($target) -match '^diagnostic-stage-[a-f0-9]{32}$' -and [IO.Directory]::Exists($target)){

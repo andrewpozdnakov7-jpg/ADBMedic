@@ -6,7 +6,11 @@ The owner changed the product goal: preserve useful evidence so a manually chose
 
 Run bootstrap without arguments, consent to collection and describe the complaint. After collection, choose 1 to open the report, 2 to open the export folder, or Enter to exit. The app opens nothing automatically. Review ADBMedic-report.zip and manually attach it to an AI you trust. The collector does not run AI recommendations.
 
-The archive contains REPORT.md, REPORT.html, facts.json (schemaVersion 2), MANUAL-ANALYSIS-PROMPT.md and selected evidence text files. The complete AI-ANALYST.md contract is embedded in the prompt, with the selected answer language. The project link is optional context; browsing is not required. Without ZIP support, attach the extracted documents and relevant evidence files.
+After a successful export, the terminal prints a short starter prompt to copy into the AI chat together with the ZIP. The same text is in the report and START-PROMPT.txt beside the archive and inside it. It points to the full analyst instructions, requests a diagnosis/action plan/follow-up examinations, states the answer locale and explains what to do if the archive cannot be opened. It is not printed when export fails.
+
+The archive contains REPORT.md, REPORT.html, facts.json (schemaVersion 2), MANUAL-ANALYSIS-PROMPT.md, START-PROMPT.txt and selected evidence text files. The complete AI-ANALYST.md contract is embedded in the full prompt, with the selected answer language. The project link is optional context; browsing is not required. Without ZIP support, attach the extracted documents and relevant evidence files.
+
+The AI answer defaults to the full Windows display locale (or an explicit collector language override), stored in facts.json.language. The separate interfaceLanguage field describes the collector's Russian/English text. A user request for another language in the AI chat takes precedence; English evidence/documentation must not change the answer language.
 
 ## Evidence and interpretation
 

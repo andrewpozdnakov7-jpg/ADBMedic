@@ -22,6 +22,8 @@ A interface de diagnóstico atualmente oferece russo e inglês e escolhe o idiom
 
 ## Já baixou o projeto?
 
+Copie a mensagem inicial exibida após a coleta e envie junto com o ZIP. Ela também está no relatório e em **START-PROMPT.txt**, ao lado do ZIP e dentro dele. A IA responde por padrão no idioma do Windows; um pedido explícito de outro idioma no chat tem prioridade.
+
 Abra o PowerShell na pasta do projeto e execute:
 
 ```powershell

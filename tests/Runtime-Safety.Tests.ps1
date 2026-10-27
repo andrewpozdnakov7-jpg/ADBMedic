@@ -106,6 +106,7 @@ try {
         $runtimeTestState.Calls=@()
         $log=@(& (Join-Path $root 'Start-ADBMedic.ps1') -Mode offline -Language en-US -NoBrowser -SkipInstall *>&1)
         $display=$log -join "`n"
+        Assert ($display.Contains('START-PROMPT.txt') -eq ($case -eq 'success')) 'starter is printed only for a completed archive'
         Assert (-not $display.Contains('TEST_SERIAL_001')) 'console does not expose USB identifier'
         Assert (-not $display.Contains('TEST_PRIVATE_PROVIDER_DETAIL')) 'console hides provider error details'
         Assert (-not $display.Contains($testRoot)) 'console does not expose private local path'

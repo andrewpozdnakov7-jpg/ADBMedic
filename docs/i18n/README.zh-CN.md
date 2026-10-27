@@ -22,6 +22,8 @@ irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1
 
 ## 已下载项目？
 
+将采集后显示的启动提示词与 ZIP 一起发送到聊天中。提示词也保存在报告以及 ZIP 旁边和内部的 **START-PROMPT.txt** 中。AI 默认使用 Windows 显示语言回答；用户在聊天中明确要求的其他语言优先。
+
 在项目文件夹中打开 PowerShell，然后运行：
 
 ```powershell

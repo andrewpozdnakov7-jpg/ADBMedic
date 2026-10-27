@@ -39,17 +39,41 @@ try{
         $prompt=[IO.File]::ReadAllText((Join-Path $bundle.Directory 'MANUAL-ANALYSIS-PROMPT.md'))
         foreach($phrase in @('Application evidence table','wake-lock acquisitions','measurement window','read-only ADB','Set-Content','expected result','Feedback template','self-contained','shared UID','Do not reset batterystats')){Assert ($prompt.Contains($phrase)) 'AI contract includes diagnostic and follow-up requirements'}
         Assert ($prompt.StartsWith($(if($ui -eq 'ru'){'Ты —'}else{'You are'}))) 'answer language is explicit'
+        $starter=[IO.File]::ReadAllText((Join-Path $bundle.Directory 'START-PROMPT.txt'))
+        Assert ($starter -ceq $bundle.StarterPrompt -and $bundle.StarterPromptFile -ceq 'START-PROMPT.txt') 'copyable starter is saved beside the archive and returned to the console'
+        Assert ($starter.Contains('ADBMedic-report.zip') -and $starter.Contains('MANUAL-ANALYSIS-PROMPT.md') -and $starter.Contains('facts.json')) 'starter directs the AI to the actual attachment and full instructions'
+        Assert ($starter.Contains('('+$facts.language+')') -and ($starter.Contains('ADB-') -or $starter.Contains('ADB commands'))) 'starter includes answer locale and follow-up examination'
+        Assert ([IO.File]::ReadAllText((Join-Path $bundle.Directory 'REPORT.md')).Contains($starter)) 'report includes the exact copyable starter'
         $html=[IO.File]::ReadAllText((Join-Path $bundle.Directory 'REPORT.html'))
         Assert (-not $html.Contains('<script>TEST</script>')) 'data is not rendered as executable HTML'
         $zip=[IO.Compression.ZipFile]::OpenRead((Join-Path $bundle.Directory $bundle.ArchiveName))
         try{
             $entries=@($zip.Entries|ForEach-Object {$_.FullName.Replace('\','/')})
             Assert ($entries -contains 'evidence/packages.txt' -and $entries -contains 'MANUAL-ANALYSIS-PROMPT.md') 'archive includes identities and full AI instructions'
+            Assert ($entries -contains 'START-PROMPT.txt') 'starter is also included inside the ZIP'
             Assert (-not ($entries -contains 'unrelated.txt') -and -not ($entries -contains 'profile.json')) 'only selected evidence and projected context are packaged'
         }finally{$zip.Dispose()}
         $blocked=$false;try{New-ADBMedicDiagnosticBundle $session $ui|Out-Null}catch{$blocked=$true}
         Assert $blocked 'existing archive is never overwritten'
     }
+    foreach($locale in @('ru-RU','en-US','fr-FR','es-ES','pt-BR','zh-CN','de-DE')){
+        $session=New-Fixture ('locale-'+$locale)
+        $bundle=& (Join-Path $root 'Package-ADBMedic.ps1') -Session $session -Language $locale -PassThru
+        $facts=[IO.File]::ReadAllText((Join-Path $bundle.Directory 'facts.json'))|ConvertFrom-Json
+        $prompt=[IO.File]::ReadAllText((Join-Path $bundle.Directory 'MANUAL-ANALYSIS-PROMPT.md'))
+        Assert ($facts.language -ceq $locale) 'packager preserves full requested locale'
+        Assert ($facts.interfaceLanguage -ceq $(if($locale -eq 'ru-RU'){'ru'}else{'en'})) 'collector UI fallback is separate from AI language'
+        Assert ($prompt.Contains('('+$locale+')') -and $prompt.Contains('that request takes precedence')) 'AI receives locale and explicit user preference priority'
+        Assert (-not $prompt.Contains('Answer in clear English.') -and -not $prompt.Contains('Ответь по-русски')) 'UI template does not force the answer language'
+    }
+    $savedCulture=[Threading.Thread]::CurrentThread.CurrentUICulture
+    try{
+        [Threading.Thread]::CurrentThread.CurrentUICulture=[Globalization.CultureInfo]::GetCultureInfo('fr-FR')
+        $session=New-Fixture 'windows-language'
+        $bundle=& (Join-Path $root 'Package-ADBMedic.ps1') -Session $session -PassThru
+        $facts=[IO.File]::ReadAllText((Join-Path $bundle.Directory 'facts.json'))|ConvertFrom-Json
+        Assert ($facts.language -ceq 'fr-FR' -and $facts.interfaceLanguage -ceq 'en') 'default uses Windows UI locale despite English interface fallback'
+    }finally{[Threading.Thread]::CurrentThread.CurrentUICulture=$savedCulture}
     foreach($secret in @(('gh'+'p_'+('X'*36)),('api'+'_key = "TEST_SECRET_VALUE"'),(('-'*5)+'BEGIN '+'PRIVATE KEY'+('-'*5)),('Authorization: '+'Bearer TEST_SECRET_VALUE'))){
         $session=New-Fixture ([guid]::NewGuid().ToString('N'))
         Write-Fixture $session 'battery.txt' $secret

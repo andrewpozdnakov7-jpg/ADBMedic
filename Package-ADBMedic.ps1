@@ -11,7 +11,7 @@ $locale=Resolve-ADBMedicLanguage -Language $Language
 try{
     . (Join-Path $PSScriptRoot 'ADBMedic-SafeExport.ps1')
     . (Join-Path $PSScriptRoot 'ADBMedic-Handoff.ps1')
-    $bundle=New-ADBMedicDiagnosticBundle $Session $locale.UI
+    $bundle=New-ADBMedicDiagnosticBundle $Session $locale.UI -AnswerLocale $locale.Locale
     if($PassThru){Write-Output $bundle}else{Write-Output $bundle.ArchiveName}
 }catch{
     if($locale.UI -eq 'ru'){throw 'Диагностический ZIP не создан: отсутствует контекст, обнаружены возможные секреты или проверка не пройдена. Подробности остаются локальными.'}

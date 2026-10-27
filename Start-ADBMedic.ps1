@@ -115,7 +115,13 @@ if($bundle -and $bundle.Ready){
     & $viewer -InputFile $privateReport -Language $locale.Locale | Out-Null
 }
 Write-Host $t.reportReady -ForegroundColor Green
-if($bundle -and $bundle.Ready){Write-Host $t.shareInstruction}
+if($bundle -and $bundle.Ready){
+    Write-Host $t.shareInstruction
+    Write-Host ''
+    Write-Host $t.starterPrompt -ForegroundColor Cyan
+    Write-Host $bundle.StarterPrompt
+    Write-Host ''
+}
 if(-not $NoBrowser){
     while($true){
         Write-Host $t.openReport
