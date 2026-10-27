@@ -1,5 +1,9 @@
 # ADBMedic development rules
 
+## User README: first-run instructions
+
+The owner wants user READMEs for a first-time, nontechnical tester: prepare the Android phone, enable/authorize USB debugging, run one PowerShell command and send the prepared ZIP plus starter prompt to the chosen AI. Keep the main README English with equivalent existing translations. Keep schemas, counters, parser internals, CI and architecture in linked technical documentation rather than adding feature-by-feature explanations to the user README. Keep essential privacy and failure guidance short and concrete.
+
 ## Current owner request: prepared battery evidence
 
 Add deterministic first-stage processing for the chosen AI: SUMMARY.md, facts.json.analysis with scoped battery windows, energy rows and typed event counters, real UID/package relationships and original source line references. Preserve complete raw evidence. Mark unsupported formats, missing data, contradictory values and output limits explicitly. Never merge windows, treat absent counters as zero, sum overlapping timers, invent app identities or declare a diagnosis. First iteration covers battery statistics; other services and system component energy remain available for targeted raw inspection. Test synthetic cases and reprocess the explicitly supplied saved session locally, never in Git/CI.

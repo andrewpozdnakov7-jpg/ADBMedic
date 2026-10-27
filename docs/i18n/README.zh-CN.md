@@ -2,42 +2,51 @@
 
 [English](../../README.md) · [Русский](README.ru.md) · [Español](README.es.md) · [Português](README.pt.md) · [Français](README.fr.md) · **简体中文**
 
-收集 Android 诊断数据并打开本地报告。适用于 Windows，无需管理员权限。
+手机耗电快或发热？ADBMedic 会准备一份报告，供你信任的 AI 分析原因并建议下一步操作。
 
-## 开始使用
+需要 **Android 手机、Windows 电脑，以及支持数据传输的 USB 线**。无需在手机上安装应用。
 
-1. 通过 USB 连接手机，并在手机上开启 USB 调试。
-2. 打开普通的 **Windows PowerShell** 窗口。
-3. 粘贴以下命令：
+## 1. 准备手机
+
+1. 打开 **设置 → 关于手机 → 版本号**。它也可能在 **软件信息** 中。连续点击 **7 次**，如有提示，输入手机解锁 PIN。
+2. 在设置中找到 **开发者选项**，开启 **USB 调试**。各品牌菜单名称可能不同，可以使用设置中的搜索。
+3. 解锁手机，用 USB 线连接到自己的电脑。
+
+## 2. 在电脑上启动
+
+打开开始菜单，搜索 **Windows PowerShell**，正常打开即可，**不需要管理员权限**。
+
+复制下面的命令，粘贴到 PowerShell，然后按 **Enter**：
 
 ```powershell
 irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1 | iex
 ```
 
-确认安装和数据收集。如果尚未安装 ADB，程序会提示下载。请在手机上允许这台计算机进行调试。收集完成后，选择 **1 — 打开报告** 或 **2 — 打开报告文件夹**。程序不会自动打开窗口；按 Enter 结束。
+- 安装和采集提示出现时，输入 **y** 并按 Enter。如果提示下载所需工具，也请确认。
+- 留意手机：如弹出 **允许 USB 调试？**，请为自己的电脑点击 **允许**。
+- 描述问题，例如“晚上不用手机，电量也下降很多”，然后等待采集完成。
 
-诊断 ZIP 准备好后，将 **ADBMedic-report.zip** 发给你信任的 AI，并要求遵循内附说明。AI 应调查原因，按真实应用解释耗电，注明数值、事件类型和统计时段，提供操作步骤并验证结果。数据不足时，应给出有针对性的只读 ADB 命令及解释。[完整 AI 职责](../../AI-ANALYST.md)。选项 2 打开文件夹。不支持 ZIP 时，请附加 REPORT.md、facts.json、MANUAL-ANALYSIS-PROMPT.md 及 evidence 中相关文件。
+## 3. 将结果交给 AI
 
-诊断界面目前支持俄语和英语，并根据 Windows 的显示语言自动选择；其他语言的系统使用英语。无需选择模式或添加命令参数。
+1. 在 PowerShell 中选择 **2**，打开报告文件夹。选择 **1** 可以自己查看报告。
+2. 将 **ADBMedic-report.zip** 附加到 ChatGPT、Claude 或其他你信任的 AI 聊天中。
+3. 粘贴 PowerShell 显示的启动提示词。相同文字也保存在 ZIP 旁边的 **START-PROMPT.txt** 中。
 
-## 已下载项目？
+AI 应解释观察结果、给出操作步骤，或要求有针对性的补充检查。默认使用 Windows 显示语言回答；你也可以要求其他语言。
 
-ZIP 中包含 **SUMMARY.md** 和 **facts.json.analysis** 中的结构化电池资料：统计时段、UID 与软件包关系、耗电估算、明确类型的计数器和源文件行号。缺失数据、未知格式与矛盾会明确标注。完整原始文件仍保存在 evidence 中；预处理不会直接判定故障原因。
+**找不到手机？** 解锁手机，确认调试授权，并尝试另一根数据线或另一个 USB 接口。如果没有生成 ZIP，请保留错误提示，不要自行压缩整个文件夹。
 
-将采集后显示的启动提示词与 ZIP 一起发送到聊天中。提示词也保存在报告以及 ZIP 旁边和内部的 **START-PROMPT.txt** 中。AI 默认使用 Windows 显示语言回答；用户在聊天中明确要求的其他语言优先。
+报告包含手机和应用的私密信息。脚本不会自动发送数据。只将 ZIP 交给你选择的 AI，不要发布到 GitHub。结束后可以关闭 USB 调试。脚本界面目前使用俄语或英语。
 
-在项目文件夹中打开 PowerShell，然后运行：
+<details>
+<summary>已经下载了项目？</summary>
+
+在项目文件夹中打开 PowerShell，运行：
 
 ```powershell
 .\bootstrap.ps1
 ```
 
-## 数据与隐私
+</details>
 
-脚本读取诊断数据，并将其保存在计算机上的 `%LOCALAPPDATA%\ADBMedic` 中。它不会更改手机设置，也不会将诊断数据上传到云端。
-
-ZIP 属于私密诊断资料，保留问题描述、机型/Android、采集时间、真实进程和软件包名称、UID/PID 及详细诊断。请先检查，再决定是否发给所选 AI。不要发布到 GitHub。发现已知凭据或私钥模式时会阻止打包，但不能保证发现所有秘密。程序不会自动上传或执行 AI 建议。[格式与限制](../SAFE-HANDOFF.md)。
-
-已在 Windows PowerShell 5.1 中测试。完整的真机运行仍有待验证。
-
-[开发指南：测试、Git 保护和高级选项](../DEVELOPMENT.md) · [MIT 许可证](../../LICENSE)
+[技术说明与开发](../DEVELOPMENT.md) · [MIT 许可证](../../LICENSE)
