@@ -34,6 +34,7 @@ function New-ADBMedicDiagnosticBundle {
     if(-not $profileText -or $null -eq $complaint){throw 'Session context is missing.'}
     $profile=$profileText|ConvertFrom-Json
     $context=[ordered]@{model=[string]$profile.model;android=[string]$profile.android;captured=[string]$profile.captured}
+    if($profile.captured -is [datetime] -or $profile.captured -is [datetimeoffset]){$context.captured=([datetimeoffset]$profile.captured).ToUniversalTime().ToString('o')}
     $captureText=Read-ADBMedicDiagnosticText $Session 'collection.json'
     $captures=@()
     if($captureText){foreach($record in (ConvertFrom-Json -InputObject $captureText)){$captures+=,$record}}
@@ -51,7 +52,8 @@ function New-ADBMedicDiagnosticBundle {
             if($timing.Count -gt 1){throw 'Duplicate capture record.'}
             $started=$null;$finished=$null;$exitCode=$null
             if($timing.Count){
-                $started=[string]$timing[0].startedUtc;$finished=[string]$timing[0].finishedUtc;$exitCode=$timing[0].exitCode
+                $started=([datetimeoffset]$timing[0].startedUtc).ToUniversalTime().ToString('o')
+                $finished=([datetimeoffset]$timing[0].finishedUtc).ToUniversalTime().ToString('o');$exitCode=$timing[0].exitCode
                 if(([datetimeoffset]$finished) -lt ([datetimeoffset]$started)){throw 'Invalid capture interval.'}
             }
             if($null -ne $text){

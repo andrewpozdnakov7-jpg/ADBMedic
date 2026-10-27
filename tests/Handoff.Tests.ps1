@@ -30,7 +30,7 @@ try{
         Assert ($facts.device.model -ceq 'TEST_MODEL' -and $facts.device.android -ceq '14') 'device context is retained'
         Assert (-not ($facts.PSObject.Properties.Name -contains 'battery')) 'no misleading numeric projection is fabricated'
         $top=$facts.sources|Where-Object file -eq 'evidence/top.txt'
-        Assert ($top.status -eq 'collected' -and $top.startedUtc -ceq '2000-01-01T00:00:00Z' -and $top.finishedUtc -ceq '2000-01-01T00:00:08Z') 'actual command interval is preserved'
+        Assert ($top.status -eq 'collected' -and ([datetimeoffset]$top.startedUtc) -eq ([datetimeoffset]'2000-01-01T00:00:00Z') -and ([datetimeoffset]$top.finishedUtc) -eq ([datetimeoffset]'2000-01-01T00:00:08Z')) 'actual command interval is preserved'
         Assert (($facts.sources|Where-Object file -eq 'evidence/jobs.txt').status -eq 'failed') 'failed command is explicit'
         Assert (($facts.sources|Where-Object file -eq 'evidence/alarms.txt').status -eq 'missing') 'missing source is not zero'
         $battery=[IO.File]::ReadAllText((Join-Path $bundle.Directory 'evidence/battery.txt'))
