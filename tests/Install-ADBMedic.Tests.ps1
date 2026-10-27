@@ -102,6 +102,9 @@ try {
     Copy-Item -LiteralPath (Join-Path $installed 'bootstrap.ps1') -Destination (Join-Path $bootstrapRoot 'Start-ADBMedic.ps1')
     $result = @(& (Join-Path $bootstrapRoot 'bootstrap.ps1') -Mode offline -Language 'en-US' -SkipInstall -NoBrowser)
     Assert ($result.Count -eq 1 -and $result[0].NoBrowser -and $result[0].SkipInstall -and $result[0].Language -eq 'en-US') 'real bootstrap forwards arguments'
+    $result=@(& (Join-Path $bootstrapRoot 'bootstrap.ps1'))
+    Assert ($result.Count -eq 1 -and $result[0].Mode -eq 'offline') 'bootstrap without parameters selects the available local workflow'
+    Assert ($result[0].Language -eq 'auto') 'bootstrap without parameters selects language automatically'
     Write-Host ('Offline installer tests: PASS (' + $installerTestState.Passed + ' assertions).')
 } finally {
     $resolvedRoot = [IO.Path]::GetFullPath((Join-Path $root '.test-work')) + [IO.Path]::DirectorySeparatorChar

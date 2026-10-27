@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-    [ValidateSet('auto','codex','offline')][string]$Mode='auto',
+    [ValidateSet('auto','codex','offline')][string]$Mode='offline',
     [string]$Language='auto',
     [switch]$SkipInstall,
     [switch]$SkipAI,
@@ -44,14 +44,10 @@ function Capture([string]$name,[string[]]$argv,[string]$folder,[string]$adb,[str
     }
 }
 
-if($SkipAI){$Mode='offline'}
-if($Mode -eq 'auto' -and -not $SkipAI){
-    Write-Host $t.chooseMode
-    $selected=(Read-Host 'Mode').Trim().ToLowerInvariant()
-    if($selected -eq 'z'){$Mode='offline'}
-    elseif($selected -eq 'c'){$Mode='codex'}
-}
-Write-Host ('ADBMedic | '+$locale.Locale+' | '+$Mode) -ForegroundColor Cyan
+# Retain old command-line parameters for compatibility. There is one available
+# workflow: local collection and reports. No mode choice is needed.
+$Mode='offline'
+Write-Host 'ADBMedic' -ForegroundColor Cyan
 $adb=EnsureAdb
 if(-not (ConfirmAction $t.collect)){Write-Host 'Cancelled';return}
 $serverOutput=@(& $adb start-server 2>&1)
@@ -84,28 +80,15 @@ Capture 'build' @('shell','getprop','ro.build.fingerprint') $folder $adb $serial
 Write-Host ($t.saved+': local private session folder (path hidden)') -ForegroundColor Green
 
 $preliminary=Join-Path $root 'Write-ADBMedicPreliminary.ps1'
-$packager=Join-Path $root 'Package-ADBMedic.ps1'
-$analyzer=Join-Path $root 'Analyze-ADBMedic.ps1'
 $viewer=Join-Path $root 'Show-ADBMedicReport.ps1'
-foreach($path in @($preliminary,$packager,$analyzer,$viewer)){
+foreach($path in @($preliminary,$viewer)){
     if(-not (Test-Path -LiteralPath $path)){throw 'A required local project component is missing.'}
 }
 & $preliminary -Session $folder -Language $locale.Locale -NoBrowser | Out-Null
-$offline=$Mode -eq 'offline' -or ($Mode -eq 'auto' -and -not (HasCommand 'codex'))
-if($offline){
-    Write-Host $t.offline -ForegroundColor Cyan
-    if($Mode -eq 'auto'){Write-Host $t.missingCodex -ForegroundColor Yellow}
-    try {
-        & $packager -Session $folder -Language $locale.Locale | Out-Null
-    } catch {
-        Write-Warning 'Unsafe ZIP export remains disabled until privacy review. Local reports are available.'
-    }
-    if(-not $NoBrowser){
-        & $viewer -InputFile (Join-Path $folder 'REPORT.md') -Language $locale.Locale -Open | Out-Null
-    }
-    return
+if(-not $NoBrowser){
+    & $viewer -InputFile (Join-Path $folder 'REPORT.md') -Language $locale.Locale -Open | Out-Null
 }
-& $analyzer -Session $folder -Language $locale.Locale -SkipInstall:$SkipInstall -NoBrowser:$NoBrowser
+Write-Host $t.done -ForegroundColor Green
 } catch {
     Write-Warning 'ADBMedic could not complete local diagnostics. Check ADB, USB authorization and local storage. Private error details are hidden.'
     exit 1

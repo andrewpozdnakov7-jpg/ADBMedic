@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-    [ValidateSet('auto','codex','offline')][string]$Mode='auto',
+    [ValidateSet('auto','codex','offline')][string]$Mode='offline',
     [string]$Language='auto',
     [switch]$SkipInstall,
     [switch]$NoBrowser

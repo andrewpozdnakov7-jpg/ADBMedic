@@ -16,6 +16,7 @@
                   "docs/02_ACCEPTANCE_CHECKLIST.md",
                   "docs/03_ARCHITECTURE_NEXT.md",
                   "docs/04_SANITIZATION_REPORT.md",
+                  "docs/DEVELOPMENT.md",
                   "docs/IMPLEMENTATION-001.md",
                   "docs/PUBLICATION-PRIVACY.md",
                   "docs/REPOSITORY-INTEGRATION.md",
@@ -28,6 +29,7 @@
                   "Prepare-ADBMedicEvidence.ps1",
                   "privacy-audit.ps1",
                   "README.md",
+                  "run.ps1",
                   "schemas/triage.schema.json",
                   "scripts/Build-SafeSourceArchive.ps1",
                   "scripts/Install-GitHooks.ps1",
@@ -38,6 +40,7 @@
                   "source-manifest.json",
                   "Start-ADBMedic.ps1",
                   "tests/Install-ADBMedic.Tests.ps1",
+                  "tests/Launch.Tests.ps1",
                   "tests/Privacy.Tests.ps1",
                   "tests/Runtime-Safety.Tests.ps1",
                   "Write-ADBMedicPreliminary.ps1"
