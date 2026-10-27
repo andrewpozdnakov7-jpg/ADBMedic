@@ -94,3 +94,5 @@ The smoke test includes clean and synthetic-secret privacy tests, real local hoo
 `./scripts/Build-SafeSourceArchive.ps1` audits a source copy, archives only manifest-listed files, re-extracts and re-audits it. It never enables diagnostic ZIP export. Existing output archives are not overwritten.
 
 Local hooks are not server enforcement and cannot guarantee detection of arbitrary personal names or encoded secrets. Manual review remains mandatory; do not skip checks. PowerShell 7, real-device behavior and an independent security review are not claimed.
+
+Automated checks and source artifacts: [GitHub CI/CD](CI.md).
