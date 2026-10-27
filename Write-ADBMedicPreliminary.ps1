@@ -94,27 +94,26 @@ $md.Add($cpuLine)
 $md.Add('')
 $md.Add('## '+$t.actions)
 if($locale.UI -eq 'ru'){
-    $md.Add('1. Изучить локальный отчёт и состояние собранных файлов.')
-    $md.Add('2. Хранить сырые диагностические данные только локально; не загружать их в облако или GitHub.')
-    $md.Add('3. Экспорт ZIP и облачный анализ недоступны до реализации проверенной очистки данных.')
+    $md.Add('1. Для анализа в чате нейросети используйте только проверенный ADBMedic-report.zip, если программа сообщила, что он подготовлен. Инструкция для нейросети уже внутри.')
+    $md.Add('2. Пункт 2 в терминале открывает папку с подготовленным архивом. Прикрепите этот ZIP в ChatGPT, Claude или другой чат и попросите выполнить инструкцию из архива.')
+    $md.Add('3. Если безопасный ZIP не подготовлен, не передавайте сырые логи или этот приватный локальный отчёт.')
 }else{
-    $md.Add('1. Review the local report and the status of collected files.')
-    $md.Add('2. Keep raw diagnostics local; do not upload them to the cloud or GitHub.')
-    $md.Add('3. ZIP export and cloud analysis are unavailable until verified data sanitization is implemented.')
+    $md.Add('1. For AI chat analysis, use only the validated ADBMedic-report.zip when the app confirms it is ready. Instructions for the assistant are already inside.')
+    $md.Add('2. Choose 2 in the terminal to open the prepared archive folder. Attach that ZIP to ChatGPT, Claude or another chat and ask it to follow the included instructions.')
+    $md.Add('3. If no safe ZIP was prepared, do not share raw logs or this private local report.')
 }
 $md.Add('')
 $md.Add('## '+$t.confidence)
 if($locale.UI -eq 'ru'){
-    $md.Add('Статус: только сбор данных. Этот документ не подтверждает ни наличие, ни отсутствие повышенного расхода батареи. Экспорт ZIP и облачный анализ отключены.')
+    $md.Add('Статус: только сбор данных. Этот документ не подтверждает ни наличие, ни отсутствие повышенного расхода батареи. Сырые данные не экспортируются; автоматическая отправка в облако отключена.')
 }else{
-    $md.Add('Status: evidence collection only. This document neither confirms nor rules out abnormal battery drain. ZIP export and cloud analysis are disabled.')
+    $md.Add('Status: evidence collection only. This document neither confirms nor rules out abnormal battery drain. Raw export and automatic cloud analysis are disabled.')
 }
 $report=Join-Path $folder 'REPORT.md'
 [IO.File]::WriteAllText($report,($md -join [Environment]::NewLine),[Text.Encoding]::UTF8)
 $viewer=Join-Path $PSScriptRoot 'Show-ADBMedicReport.ps1'
 if(Test-Path -LiteralPath $viewer){
-    if($NoBrowser){& $viewer -InputFile $report -Language $locale.Locale | Out-Null}
-    else{& $viewer -InputFile $report -Language $locale.Locale -Open | Out-Null}
+    & $viewer -InputFile $report -Language $locale.Locale | Out-Null
 }
 Write-Output 'REPORT.md'
 

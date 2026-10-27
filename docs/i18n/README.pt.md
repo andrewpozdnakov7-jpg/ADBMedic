@@ -14,7 +14,9 @@ Coleta dados de diagnóstico do Android e abre um relatório local. Funciona no 
 irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1 | iex
 ```
 
-Confirme a instalação e a coleta de dados. Se o ADB não estiver disponível, o aplicativo oferecerá o download. No telefone, autorize a depuração a partir deste computador. O relatório será aberto no navegador ao final da coleta.
+Confirme a instalação e a coleta de dados. Se o ADB não estiver disponível, o aplicativo oferecerá o download. No telefone, autorize a depuração a partir deste computador. Ao terminar, escolha **1 — abrir o relatório** ou **2 — abrir a pasta dele**. Nada abre automaticamente; pressione Enter para encerrar.
+
+Quando o aplicativo confirmar que o ZIP seguro está pronto, anexe **ADBMedic-report.zip** ao seu chat de IA (ChatGPT, Claude ou outro) e peça que siga as instruções incluídas. O arquivo contém medições e um pedido de conclusões claras, passos detalhados e acompanhamento. A opção 2 abre a pasta do ZIP. Se o chat não ler ZIP, extraia e anexe REPORT.md, facts.json e MANUAL-ANALYSIS-PROMPT.md.
 
 A interface de diagnóstico atualmente oferece russo e inglês e escolhe o idioma conforme o idioma de exibição do Windows. Para os demais idiomas, usa o inglês. Não é preciso escolher um modo nem adicionar parâmetros ao comando.
 
@@ -30,7 +32,7 @@ Abra o PowerShell na pasta do projeto e execute:
 
 O script lê os dados de diagnóstico e os salva no seu computador em `%LOCALAPPDATA%\ADBMedic`. Ele não altera as configurações do telefone nem envia dados de diagnóstico para a nuvem.
 
-Por enquanto, o relatório resume os dados coletados; o diagnóstico automático ainda não está disponível. O envio de dados para IA e a exportação de diagnósticos em ZIP estão desativados. Os arquivos locais podem conter informações pessoais; não os publique.
+O relatório local é privado. Compartilhe apenas o ZIP preparado: ele contém medições numéricas validadas e rótulos de processos desta sessão, sem identificadores nem registros brutos. Se a validação falhar, nenhum ZIP para compartilhamento será criado. Não há diagnóstico nem envio para IA automáticos; a análise é feita pelo chat escolhido. [Formato de exportação e limites](../SAFE-HANDOFF.md).
 
 Testado com Windows PowerShell 5.1. Uma execução completa com um telefone real ainda precisa ser verificada.
 

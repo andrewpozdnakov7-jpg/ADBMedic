@@ -9,7 +9,7 @@ $ErrorActionPreference='Stop'
 # Local launcher. Install-ADBMedic.ps1 handles explicit repository installation.
 $modules=@(
     'Start-ADBMedic.ps1', 'ADBMedic-Device.ps1',
-    'ADBMedic-Locale.ps1', 'Package-ADBMedic.ps1',
+    'ADBMedic-Locale.ps1', 'ADBMedic-SafeExport.ps1', 'Package-ADBMedic.ps1',
     'Analyze-ADBMedic.ps1', 'Prepare-ADBMedicEvidence.ps1',
     'Write-ADBMedicPreliminary.ps1', 'Show-ADBMedicReport.ps1'
 )

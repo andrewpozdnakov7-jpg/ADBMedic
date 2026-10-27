@@ -70,8 +70,8 @@ try {
     Assert ($launches[0].Mode -eq 'offline' -and $launches[0].Language -eq 'ru-RU') 'safe default and language are forwarded'
     Assert ($launches[0].SkipInstall -and $launches[0].NoBrowser) 'launch switches are forwarded'
     $installed = Join-Path $installRoot $installerTestState.Revision
-    Assert ((Get-ChildItem -LiteralPath $installed -File).Count -eq 11) 'only allowlisted source files are installed'
-    Assert ($installerTestState.Downloads.Count -eq 11) 'expected source request count'
+    Assert ((Get-ChildItem -LiteralPath $installed -File).Count -eq 12) 'only allowlisted source files are installed'
+    Assert ($installerTestState.Downloads.Count -eq 12) 'expected source request count'
     Assert ($installerTestState.MetadataReads -eq 1 -and $installerTestState.RestApiCalls -eq 0) 'installation resolves the source revision without REST API quota'
     Assert (@($installerTestState.Downloads | Where-Object { $_ -notmatch ('^https://raw\.githubusercontent\.com/andrewpozdnakov7-jpg/ADBMedic/' + $installerTestState.Revision + '/[^/]+$') }).Count -eq 0) 'all files use one pinned source revision'
 
@@ -96,7 +96,7 @@ try {
     $bootstrapRoot = Join-Path $testRoot 'TEST bootstrap'
     [IO.Directory]::CreateDirectory($bootstrapRoot) | Out-Null
     Copy-Item -LiteralPath (Join-Path $root 'bootstrap.ps1') -Destination $bootstrapRoot
-    foreach ($name in @('ADBMedic-Device.ps1','ADBMedic-Locale.ps1','Package-ADBMedic.ps1','Analyze-ADBMedic.ps1','Prepare-ADBMedicEvidence.ps1','Write-ADBMedicPreliminary.ps1','Show-ADBMedicReport.ps1')) {
+    foreach ($name in @('ADBMedic-Device.ps1','ADBMedic-Locale.ps1','ADBMedic-SafeExport.ps1','Package-ADBMedic.ps1','Analyze-ADBMedic.ps1','Prepare-ADBMedicEvidence.ps1','Write-ADBMedicPreliminary.ps1','Show-ADBMedicReport.ps1')) {
         [IO.File]::WriteAllText((Join-Path $bootstrapRoot $name), '# TEST_SYNTHETIC_SOURCE')
     }
     Copy-Item -LiteralPath (Join-Path $installed 'bootstrap.ps1') -Destination (Join-Path $bootstrapRoot 'Start-ADBMedic.ps1')

@@ -60,7 +60,7 @@ $android=(& $adb -s $serial shell getprop ro.build.version.release | Out-String)
 Write-Host 'ADB device ready.'
 $symptom=Read-Host $t.symptom
 if([string]::IsNullOrWhiteSpace($symptom)){$symptom=$t.noSymptom}
-$folder=Join-Path $work ('session-'+(Get-Date -Format 'yyyyMMdd-HHmmss'))
+$folder=Join-Path $work ('session-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Force -Path $folder | Out-Null
 [IO.File]::WriteAllText((Join-Path $folder 'symptom.txt'),$symptom,[Text.Encoding]::UTF8)
 @{captured=(Get-Date).ToString('o');model=$model;android=$android} |
@@ -77,7 +77,6 @@ Capture 'thermal' @('shell','dumpsys','thermalservice') $folder $adb $serial
 Capture 'camera' @('shell','dumpsys','media.camera') $folder $adb $serial
 Capture 'sensors' @('shell','dumpsys','sensorservice') $folder $adb $serial
 Capture 'build' @('shell','getprop','ro.build.fingerprint') $folder $adb $serial
-Write-Host ($t.saved+': local private session folder (path hidden)') -ForegroundColor Green
 
 $preliminary=Join-Path $root 'Write-ADBMedicPreliminary.ps1'
 $viewer=Join-Path $root 'Show-ADBMedicReport.ps1'
@@ -85,10 +84,58 @@ foreach($path in @($preliminary,$viewer)){
     if(-not (Test-Path -LiteralPath $path)){throw 'A required local project component is missing.'}
 }
 & $preliminary -Session $folder -Language $locale.Locale -NoBrowser | Out-Null
-if(-not $NoBrowser){
-    & $viewer -InputFile (Join-Path $folder 'REPORT.md') -Language $locale.Locale -Open | Out-Null
+$bundle=$null
+try{
+    $bundle=& (Join-Path $root 'Package-ADBMedic.ps1') -Session $folder -Language $locale.Locale -PassThru
+}catch{
+    Write-Warning $t.shareBlocked
 }
-Write-Host $t.done -ForegroundColor Green
+$privateReport=Join-Path $folder 'REPORT.md'
+if($bundle -and $bundle.Ready){
+    $addition=New-Object 'System.Collections.Generic.List[string]'
+    $addition.Add('# ADBMedic — '+$t.preliminary)
+    $addition.Add('')
+    $notice=if($locale.UI -eq 'ru'){'Приватный локальный отчёт. Для передачи в чат используйте только подготовленный ZIP.'}else{'Private local report. Share only the prepared ZIP with an AI chat.'}
+    $addition.Add($notice)
+    $addition.Add([IO.File]::ReadAllText((Join-Path $bundle.Directory 'REPORT.md')).Substring("# ADBMedic`n".Length))
+    if($locale.UI -eq 'ru'){
+        $addition.Add('## Соответствие меток — только на этом компьютере')
+        $addition.Add('Это приватная часть отчёта, не включённая в ZIP. По ней можно понять рекомендации нейросети. Не отправляйте этот локальный отчёт в чат.')
+    }else{
+        $addition.Add('## Private label mapping — on this computer only')
+        $addition.Add('This private section is not included in the ZIP. Use it to understand the assistant recommendations. Do not share this local report.')
+    }
+    $addition.Add('| Label | Observed local process names |')
+    $addition.Add('| --- | --- |')
+    foreach($subject in $bundle.PrivateSubjects){
+        $names=if($subject.Names.Count){$subject.Names -join ', '}else{'not_observed_in_cpu_samples'}
+        $addition.Add('| '+$subject.Label+' | '+$names+' |')
+    }
+    $addition.Add('## '+$t.findings)
+    $addition.Add([IO.File]::ReadAllText($privateReport))
+    [IO.File]::WriteAllText($privateReport,(($addition -join [Environment]::NewLine)+[Environment]::NewLine),[Text.Encoding]::UTF8)
+    & $viewer -InputFile $privateReport -Language $locale.Locale | Out-Null
+}
+Write-Host $t.reportReady -ForegroundColor Green
+if($bundle -and $bundle.Ready){Write-Host $t.shareInstruction}
+if(-not $NoBrowser){
+    while($true){
+        Write-Host $t.openReport
+        Write-Host $t.openReportFolder
+        $choice=(Read-Host $t.reportChoice).Trim()
+        if(-not $choice){break}
+        try{
+            switch($choice){
+                '1'{Start-Process -FilePath (Join-Path $folder 'REPORT.html') | Out-Null}
+                '2'{
+                    $visibleFolder=if($bundle -and $bundle.Ready){$bundle.Directory}else{$folder}
+                    Start-Process -FilePath 'explorer.exe' -ArgumentList ('"'+$visibleFolder+'"') | Out-Null
+                }
+                default{Write-Host $t.invalidReportChoice}
+            }
+        }catch{Write-Warning $t.openFailed}
+    }
+}
 } catch {
     Write-Warning 'ADBMedic could not complete local diagnostics. Check ADB, USB authorization and local storage. Private error details are hidden.'
     exit 1

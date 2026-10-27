@@ -1,7 +1,7 @@
 {
     "project":  "ADBMedic",
     "package_type":  "development_source",
-    "task":  "TASK-001",
+    "task":  "SAFE-HANDOFF-V1",
     "public_release_ready":  false,
     "legacy_source_history_included":  false,
     "real_device_diagnostics_included":  false,
@@ -9,5 +9,7 @@
     "raw_zip_export_disabled_until_privacy_gate":  true,
     "private_identifiers_included":  false,
     "approved_public_git_identity":  true,
-    "rename_is_not_guaranteed_anonymity":  true
+    "rename_is_not_guaranteed_anonymity":  true,
+    "safe_manual_zip_enabled":  true,
+    "automatic_report_open":  false
 }

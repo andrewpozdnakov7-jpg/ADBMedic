@@ -5,7 +5,7 @@ $testRoot=Join-Path $root ('.test-work/runtime-'+[guid]::NewGuid().ToString('N')
 $savedLocalData=$env:LOCALAPPDATA
 $savedTemp=$env:TEMP
 $savedUICulture=[Threading.Thread]::CurrentThread.CurrentUICulture
-$runtimeTestState=@{Case='success'; Calls=@(); Network=0; Cloud=0; Browser=0; Prompts=0; PromptTexts=@(); Passed=0; LocaleReads=0}
+$runtimeTestState=@{Case='success'; Calls=@(); Network=0; Cloud=0; Browser=0; Prompts=0; PromptTexts=@(); Opened=@(); FailFirstOpen=$false; Passed=0; LocaleReads=0}
 function Assert([bool]$Condition,[string]$Description) {
     if (-not $Condition) { throw ('Runtime safety test failed: '+$Description) }
     $runtimeTestState.Passed++
@@ -13,7 +13,12 @@ function Assert([bool]$Condition,[string]$Description) {
 function Invoke-WebRequest { $runtimeTestState.Network++; throw 'Unexpected test network call.' }
 function Invoke-RestMethod { $runtimeTestState.Network++; throw 'Unexpected test network call.' }
 function codex { $runtimeTestState.Cloud++; throw 'Unexpected test cloud call.' }
-function Start-Process { $runtimeTestState.Browser++; throw 'Unexpected test browser call.' }
+function Start-Process {
+    param($FilePath,$ArgumentList)
+    $runtimeTestState.Browser++
+    $runtimeTestState.Opened+=@([pscustomobject]@{File=$FilePath;Arguments=$ArgumentList})
+    if($runtimeTestState.FailFirstOpen -and $runtimeTestState.Browser -eq 1){throw 'TEST_PRIVATE_PROVIDER_DETAIL'}
+}
 function Get-Command {
     param($Name,$ErrorAction)
     if ($Name -eq 'adb' -and $runtimeTestState.Case -eq 'missing-adb') { return $null }
@@ -25,6 +30,10 @@ function Read-Host {
     $runtimeTestState.PromptTexts+=@([string]$Prompt)
     if ($runtimeTestState.Case -eq 'decline') { return 'n' }
     if ($runtimeTestState.Prompts -eq 1) { return 'y' }
+    if($runtimeTestState.Case -eq 'menu'){
+        switch($runtimeTestState.Prompts){2{return 'Battery drain'};3{return 'invalid'};4{return '1'};5{return '2'};default{return ''}}
+    }
+    if($runtimeTestState.Case -eq 'menu-exit' -and $runtimeTestState.Prompts -ge 3){return ''}
     if ($runtimeTestState.Case -in @('enumeration-failure','unauthorized','offline','no-device')) { return 'q' }
     return 'TEST_SYNTHETIC_SYMPTOM'
 }
@@ -46,6 +55,16 @@ function adb {
         return 'TEST_SYNTHETIC_BUILD'
     }
     if ($args[3] -notin @('dumpsys','top')) { throw 'Unexpected synthetic ADB shell operation.' }
+    if($args[3] -eq 'top'){
+        if($runtimeTestState.Case -eq 'unsupported'){return 'TEST_UNKNOWN_FORMAT'}
+        return @('800%cpu 80%user 0%nice 0%sys 720%idle 0%iow 0%irq 0%sirq 0%host','PID USER PR NI VIRT RES SHR S[%CPU] %MEM TIME+ ARGS','4242 u0_a123 20 0 1G 20M 1M R 80.0 0.1 0:01.00 com.example.synthetic')
+    }
+    if($args[4] -eq 'batterystats'){
+        if($runtimeTestState.Case -eq 'unsupported'){return 'TEST_UNKNOWN_FORMAT'}
+        return @('Time on battery: 2h 0m 0s (50%) realtime, 1h 0m 0s (50%) uptime','Uid u0a123: 3.0 (cpu=2.0)')
+    }
+    if($args[4] -eq 'power'){return @('mWakefulness=Awake','mIsPowered=false')}
+    if($args[4] -eq 'thermalservice'){return 'Thermal Status: 0'}
     return 'TEST_SYNTHETIC_CAPTURE'
 }
 function Get-Content {
@@ -110,6 +129,23 @@ try {
         Assert (-not (($log -join "`n") -match 'Mode|Codex|offline')) 'plain bootstrap has no technical mode choices'
     }
     Assert ($runtimeTestState.Network -eq 0 -and $runtimeTestState.Cloud -eq 0 -and $runtimeTestState.Browser -eq 0) 'synthetic diagnostics make no network/cloud/browser calls'
+    $runtimeTestState.Case='menu-exit';$runtimeTestState.Prompts=0
+    $log=@(& (Join-Path $root 'bootstrap.ps1') *>&1)
+    Assert ($runtimeTestState.Browser -eq 0) 'default successful run opens no browser or folder'
+    Assert (($log -join "`n").Contains('ADBMedic-report.zip')) 'terminal explains which prepared archive to give the AI chat'
+    $runtimeTestState.Case='menu';$runtimeTestState.Prompts=0;$runtimeTestState.FailFirstOpen=$true
+    $log=@(& (Join-Path $root 'bootstrap.ps1') *>&1)
+    Assert ($runtimeTestState.Browser -eq 2) 'only explicit report/folder choices launch windows'
+    Assert ($runtimeTestState.Opened[0].File.EndsWith('REPORT.html') -and $runtimeTestState.Opened[1].File -ceq 'explorer.exe') 'menu opens the report and the correct shell'
+    Assert ($runtimeTestState.Opened[1].Arguments.EndsWith('exports"')) 'folder choice shows only prepared share files'
+    Assert (-not (($log -join "`n").Contains('TEST_PRIVATE_PROVIDER_DETAIL'))) 'open-window failure is hidden and menu recovers'
+    Assert ($runtimeTestState.Network -eq 0 -and $runtimeTestState.Cloud -eq 0) 'manual handoff never uploads automatically'
+    $before=@(Get-ChildItem -LiteralPath (Join-Path $testRoot 'ADBMedic/data') -Directory | ForEach-Object{$_.FullName})
+    $runtimeTestState.Case='unsupported';$runtimeTestState.Prompts=0
+    $log=@(& (Join-Path $root 'bootstrap.ps1') -NoBrowser *>&1)
+    $created=@(Get-ChildItem -LiteralPath (Join-Path $testRoot 'ADBMedic/data') -Directory | Where-Object{$before -notcontains $_.FullName})
+    Assert ($created.Count -eq 1 -and -not(Test-Path -LiteralPath (Join-Path $created[0].FullName 'exports'))) 'unsupported capture retains a local report without a fabricated archive'
+    Assert (-not (($log -join "`n").Contains('ADBMedic-report.zip'))) 'failed export does not tell the user to upload a nonexistent ZIP'
     Write-Host ('Offline runtime safety tests: PASS ('+$runtimeTestState.Passed+' assertions).')
 } finally {
     $env:LOCALAPPDATA=$savedLocalData

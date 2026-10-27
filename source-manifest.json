@@ -8,6 +8,7 @@
                   ".gitignore",
                   "ADBMedic-Device.ps1",
                   "ADBMedic-Locale.ps1",
+                  "ADBMedic-SafeExport.ps1",
                   "AGENTS.md",
                   "Analyze-ADBMedic.ps1",
                   "bootstrap.ps1",
@@ -25,6 +26,7 @@
                   "docs/IMPLEMENTATION-001.md",
                   "docs/PUBLICATION-PRIVACY.md",
                   "docs/REPOSITORY-INTEGRATION.md",
+                  "docs/SAFE-HANDOFF.md",
                   "HANDOFF_MANIFEST.json",
                   "Install-ADBMedic.ps1",
                   "knowledge/android-diagnostics.md",
@@ -48,6 +50,7 @@
                   "tests/Launch.Tests.ps1",
                   "tests/Privacy.Tests.ps1",
                   "tests/Runtime-Safety.Tests.ps1",
+                  "tests/SafeExport.Tests.ps1",
                   "Write-ADBMedicPreliminary.ps1"
               ]
 }
