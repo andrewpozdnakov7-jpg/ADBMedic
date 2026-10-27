@@ -58,7 +58,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          & ./scripts/Build-SafeSourceArchive.ps1
+          & powershell.exe -NoLogo -NoProfile -NonInteractive -File ./scripts/Build-SafeSourceArchive.ps1
           if ($LASTEXITCODE -ne 0) { throw 'Source archive validation failed.' }
       - name: Upload verified source only
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
