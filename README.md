@@ -14,7 +14,9 @@ Collect Android diagnostics and view a local report. Runs on Windows without adm
 irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1 | iex
 ```
 
-Confirm installation and data collection. If ADB is missing, the app will offer to download it. Allow debugging from this computer on your phone. The report will open in your browser after collection.
+Confirm installation and data collection. If ADB is missing, the app will offer to download it. Allow debugging from this computer on your phone. After collection, choose **1 — open the report** or **2 — open its folder**. Nothing opens automatically; press Enter to finish.
+
+When the app confirms the safe ZIP is ready, attach **ADBMedic-report.zip** to your AI chat (ChatGPT, Claude or another) and ask it to follow the included instructions. The ZIP contains measurements and a request for clear conclusions, detailed steps and feedback. Choose 2 to find it. If your chat cannot read ZIP files, extract it and attach REPORT.md, facts.json and MANUAL-ANALYSIS-PROMPT.md.
 
 The diagnostic interface currently supports Russian and English, selected automatically from your Windows display language. Other languages use English. No mode selection or command options are needed.
 
@@ -30,7 +32,7 @@ Open PowerShell in the project folder and run:
 
 The script reads diagnostics and saves them on your computer under `%LOCALAPPDATA%\ADBMedic`. It does not change your phone settings or upload diagnostic data to the cloud.
 
-The report currently summarizes collected data; automated diagnosis is not available yet. AI uploads and diagnostic ZIP export are disabled. Local files may contain personal information; keep them private.
+The local report is private. Share only the prepared ZIP: it contains validated numeric measurements and session-only process labels, with identities and raw logs excluded. If validation fails, no shareable ZIP is created. Automated diagnosis and automatic AI uploads are not performed; your chosen chat provides the analysis. [Export format and limitations](docs/SAFE-HANDOFF.md).
 
 Tested with Windows PowerShell 5.1. A full run with a real phone still needs verification.
 

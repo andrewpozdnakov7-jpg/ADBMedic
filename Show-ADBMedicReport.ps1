@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory=$true)][string]$InputFile,
     [switch]$Open,
-    [string]$Language='auto'
+    [string]$Language='auto',
+    [switch]$Deterministic
 )
 $ErrorActionPreference = 'Stop'
 try {
@@ -178,15 +179,16 @@ body{margin:0;background:#0c111a;color:#e5ebf5;line-height:1.65}
 .footer{padding-top:18px;font-size:12px;color:#8b9cb3}
 @media(max-width:600px){.shell{padding:12px 11px 35px}.report{padding:16px}.status{display:none}}
 '@
-$now=(Get-Date).ToString('yyyy-MM-dd HH:mm')
+$now=if($Deterministic){''}else{(Get-Date).ToString('yyyy-MM-dd HH:mm')}
 $html='<!doctype html><html lang="'+[System.Net.WebUtility]::HtmlEncode($locale.Locale)+'"><head>'
 $html+='<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
 $html+='<meta http-equiv="Content-Security-Policy" content="default-src '+[string][char]39+'none'+[string][char]39+'; style-src '+[string][char]39+'unsafe-inline'+[string][char]39+'; img-src '+[string][char]39+';">'
 $html+='<title>ADBMedic - '+(EscapeText $t.title)+'</title><style>'+$style+'</style></head><body>'
-$html+='<div class="shell"><header class="header"><div class="identity"><div class="logo">&#8981;</div><div><div class="name">ADBMedic</div><div class="subtitle">AI-powered Android diagnostics</div></div></div><div class="status">'+(EscapeText $t.browser)+'</div></header>'
+$html+='<div class="shell"><header class="header"><div class="identity"><div class="logo">&#8981;</div><div><div class="name">ADBMedic</div><div class="subtitle">'+(EscapeText $t.preliminary)+'</div></div></div><div class="status">'+(EscapeText $t.browser)+'</div></header>'
 $html+='<section class="hero"><div class="kicker">'+(EscapeText $t.title)+'</div><h1>'+(EscapeText $t.heroTitle)+'</h1><p>'+(EscapeText $t.heroDesc)+'</p></section>'
 $html+='<article class="report">'+$body.ToString()+'</article>'
-$html+='<footer class="footer">'+(EscapeText $t.created)+' '+(EscapeText $now)+'. '+(EscapeText $t.privacy)+'</footer></div></body></html>'
+$footer=if($Deterministic){EscapeText $t.privacy}else{(EscapeText $t.created)+' '+(EscapeText $now)+'. '+(EscapeText $t.privacy)}
+$html+='<footer class="footer">'+$footer+'</footer></div></body></html>'
 $destination=Join-Path $folder 'REPORT.html'
 [IO.File]::WriteAllText($destination,$html,([System.Text.UTF8Encoding]::new($false)))
 Write-Output 'REPORT.html'

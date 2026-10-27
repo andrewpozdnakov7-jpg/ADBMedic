@@ -14,7 +14,9 @@
 irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1 | iex
 ```
 
-确认安装和数据收集。如果尚未安装 ADB，程序会提示下载。请在手机上允许这台计算机进行调试。数据收集完成后，报告会自动在浏览器中打开。
+确认安装和数据收集。如果尚未安装 ADB，程序会提示下载。请在手机上允许这台计算机进行调试。收集完成后，选择 **1 — 打开报告** 或 **2 — 打开报告文件夹**。程序不会自动打开窗口；按 Enter 结束。
+
+当程序确认安全 ZIP 已准备好后，将 **ADBMedic-report.zip** 附加到你使用的 AI 聊天中（如 ChatGPT、Claude 等），并让它遵循压缩包内的说明。压缩包包含测量数据，以及要求 AI 给出清晰结论、详细操作步骤和后续反馈指引的说明。选项 2 可打开 ZIP 所在文件夹。如果聊天服务无法读取 ZIP，请解压并附加 REPORT.md、facts.json 和 MANUAL-ANALYSIS-PROMPT.md。
 
 诊断界面目前支持俄语和英语，并根据 Windows 的显示语言自动选择；其他语言的系统使用英语。无需选择模式或添加命令参数。
 
@@ -30,7 +32,7 @@ irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1
 
 脚本读取诊断数据，并将其保存在计算机上的 `%LOCALAPPDATA%\ADBMedic` 中。它不会更改手机设置，也不会将诊断数据上传到云端。
 
-目前报告仅汇总收集到的数据，尚不提供自动诊断。向 AI 发送数据和导出诊断 ZIP 的功能均已禁用。本地文件可能包含个人信息，请勿公开发布。
+本地报告属于私密文件。只分享程序准备的 ZIP：其中包含经过验证的数值测量和仅适用于本次会话的进程标签，不包含身份标识或原始日志。验证失败时不会创建可分享的 ZIP。程序不会自动诊断或向 AI 上传数据；分析由你选择的聊天服务完成。[导出格式与限制](../SAFE-HANDOFF.md)。
 
 已在 Windows PowerShell 5.1 中测试。完整的真机运行仍有待验证。
 

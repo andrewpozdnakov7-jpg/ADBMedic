@@ -1,5 +1,9 @@
 # ADBMedic development rules
 
+## Current owner request: manual safe report handoff
+
+The owner explicitly authorized the next safe-export stage: no automatic report opening; a two-choice report/folder menu; a portable ZIP of validated measurements and an AI instruction file, manually attached by the user to any suitable AI chat. Preserve enough numeric CPU/battery/power/thermal context, require plain-language evidence-based advice and detailed user feedback steps, and keep raw logs/identities/free-text complaints private. A closed-schema derived-facts export is permitted after validation; raw ZIP export and automatic cloud analysis remain prohibited. This explicit scope supersedes the previous instruction to stop after TASK-001, without authorizing unrelated diagnostic features.
+
 ## Current owner request: simple startup
 
 The owner requested a short user README and startup without mode/language flags. Make local `bootstrap.ps1` work without arguments, select the Windows UI language automatically, and provide one remote launch command. This is a usability change to the existing local workflow, not permission to implement TASK-002 or enable diagnostic export/cloud analysis. Existing publication audits and branch/PR workflow remain mandatory.

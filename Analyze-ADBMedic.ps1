@@ -11,7 +11,7 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'ADBMedic-Locale.ps1')
 $locale=Resolve-ADBMedicLanguage -Language $Language
 if($locale.UI -eq 'ru'){
-    Write-Warning 'Облачный анализ временно отключён: данные ещё не прошли обязательную анонимизацию (TASK-002). Никакие данные не отправлены.'
+    Write-Warning 'Автоматический облачный анализ отключён. Если безопасный ADBMedic-report.zip подготовлен, прикрепите его в чат нейросети вручную. Никакие данные не отправлены.'
 }else{
-    Write-Warning 'Cloud analysis is temporarily disabled: diagnostic data have not passed required anonymization (TASK-002). Nothing was uploaded.'
+    Write-Warning 'Automatic cloud analysis is disabled. If a safe ADBMedic-report.zip was prepared, attach it to your AI chat manually. Nothing was uploaded.'
 }

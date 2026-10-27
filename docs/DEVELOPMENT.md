@@ -1,5 +1,7 @@
 # Разработка и дополнительные параметры ADBMedic
 
+Current manual export: see [Safe handoff v1](SAFE-HANDOFF.md). The app now shows a two-choice menu instead of opening reports automatically. `-NoBrowser` is the noninteractive completion option for tests/automation. A validated derived-facts ZIP is prepared for manual AI-chat upload; arbitrary raw export and automatic AI access remain blocked. Historical baseline notes below do not override this newer owner-authorized stage.
+
 Пользовательский запуск: `.\bootstrap.ps1` без параметров. Язык определяется автоматически. Старые параметры режима оставлены для совместимости, но всегда ведут к доступному локальному сценарию; выбора режима и вызова заблокированного экспортёра в обычном запуске больше нет. Короткая команда GitHub описана в [README](../README.md).
 
 

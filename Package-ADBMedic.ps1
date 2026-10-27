@@ -1,14 +1,18 @@
 ﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][string]$Session,
-    [string]$Language='auto'
+    [string]$Language='auto',
+    [switch]$PassThru
 )
-# SECURITY HOLD: re-enable only after TASK-001/TASK-002 privacy acceptance.
-# Do not copy, zip, transform or upload raw diagnostics here.
+# Raw export stays blocked. The owner authorized a validated derived-facts ZIP.
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'ADBMedic-Locale.ps1')
 $locale=Resolve-ADBMedicLanguage -Language $Language
-if($locale.UI -eq 'ru'){
-    throw 'Экспорт ZIP отключён: исходные Android-дампы могут содержать персональные данные. Требуется проверенная очистка (TASK-002). Исходные измерения сохранены локально.'
+try{
+    . (Join-Path $PSScriptRoot 'ADBMedic-SafeExport.ps1')
+    $bundle=New-ADBMedicSafeBundle $Session $locale.UI
+    if($PassThru){Write-Output $bundle}else{Write-Output $bundle.ArchiveName}
+}catch{
+    if($locale.UI -eq 'ru'){throw 'Безопасный ZIP не создан: данные отсутствуют, формат не поддерживается или проверка не пройдена. Не передавайте сырые логи или локальный отчёт.'}
+    throw 'Safe ZIP was not created: measurements are missing, unsupported or failed validation. Do not share raw logs or the private local report.'
 }
-throw 'ZIP export is disabled: raw Android dumps may contain personal data. A verified sanitizer is required (TASK-002). Original evidence remains local.'
