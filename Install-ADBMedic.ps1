@@ -13,7 +13,7 @@ $ProgressPreference = 'SilentlyContinue'
 # This repository is explicitly selected by the project owner.
 $files = @(
     'bootstrap.ps1', 'Start-ADBMedic.ps1', 'ADBMedic-Device.ps1',
-    'ADBMedic-Locale.ps1', 'ADBMedic-SafeExport.ps1', 'ADBMedic-Handoff.ps1', 'AI-ANALYST.md', 'Package-ADBMedic.ps1', 'Analyze-ADBMedic.ps1',
+    'ADBMedic-Locale.ps1', 'ADBMedic-SafeExport.ps1', 'ADBMedic-Handoff.ps1', 'ADBMedic-Summary.ps1', 'AI-ANALYST.md', 'Package-ADBMedic.ps1', 'Analyze-ADBMedic.ps1',
     'Prepare-ADBMedicEvidence.ps1', 'Write-ADBMedicPreliminary.ps1',
     'Show-ADBMedicReport.ps1', 'README.md', 'LICENSE'
 )

@@ -8,9 +8,17 @@ Run bootstrap without arguments, consent to collection and describe the complain
 
 After a successful export, the terminal prints a short starter prompt to copy into the AI chat together with the ZIP. The same text is in the report and START-PROMPT.txt beside the archive and inside it. It points to the full analyst instructions, requests a diagnosis/action plan/follow-up examinations, states the answer locale and explains what to do if the archive cannot be opened. It is not printed when export fails.
 
-The archive contains REPORT.md, REPORT.html, facts.json (schemaVersion 2), MANUAL-ANALYSIS-PROMPT.md, START-PROMPT.txt and selected evidence text files. The complete AI-ANALYST.md contract is embedded in the full prompt, with the selected answer language. The project link is optional context; browsing is not required. Without ZIP support, attach the extracted documents and relevant evidence files.
+The archive contains REPORT.md, REPORT.html, SUMMARY.md, facts.json (schemaVersion 2), MANUAL-ANALYSIS-PROMPT.md, START-PROMPT.txt and selected evidence text files. The complete AI-ANALYST.md contract is embedded in the full prompt, with the selected answer language. The project link is optional context; browsing is not required. Without ZIP support, attach the extracted documents and relevant evidence files.
 
 The AI answer defaults to the full Windows display locale (or an explicit collector language override), stored in facts.json.language. The separate interfaceLanguage field describes the collector's Russian/English text. A user request for another language in the AI chat takes precedence; English evidence/documentation must not change the answer language.
+
+## Prepared battery evidence
+
+SUMMARY.md is the short entry point, also included in the rendered report. facts.json.analysis (version 1) contains explicit statistics windows, per-section UID energy estimates in mAh, typed partial-wakelock/job-timer-start/wakeup-alarm records, UID/package mappings and source file/line references. Full raw evidence is unchanged. The starter directs the AI to these prepared facts before targeted raw inspection.
+
+Only recognized statistics windows and units are parsed. No rates, energy per call, arbitrary application names or diagnosis are inferred. Shared UIDs remain plural; current inventory and UID-scoped Apk records have cited provenance. Duplicate energy UIDs, ambiguous aggregates and values exceeding their own section's aggregate produce review warnings. Bounds comparisons allow printed-value rounding (0.5 percent or 0.001 mAh); passing them is not proof of a correct energy model. Windows are never merged and overlapping timer durations are not summed.
+
+The summary selects up to 15 energy rows per section and 30 typed counter records; all parsed records are retained in JSON within explicit extraction limits (32 windows/energy sections, 10,000 energy rows/package mappings, 20,000 counters and 200 issues). Unknown units, malformed values, unrecognized section boundaries and extraction caps are visible. Unsupported OEM input still produces a raw-evidence archive with unsupported analysis, not fabricated metrics. CPU/network details, system component energy, raw event history and other services remain unsummarized and may need direct inspection. A frequent event or top energy estimate is a lead for investigation, not proof of excess consumption.
 
 ## Evidence and interpretation
 

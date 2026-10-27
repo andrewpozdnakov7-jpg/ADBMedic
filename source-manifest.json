@@ -11,6 +11,7 @@
                   "ADBMedic-Handoff.ps1",
                   "ADBMedic-Locale.ps1",
                   "ADBMedic-SafeExport.ps1",
+                  "ADBMedic-Summary.ps1",
                   "AGENTS.md",
                   "AI-ANALYST.md",
                   "Analyze-ADBMedic.ps1",
@@ -57,6 +58,7 @@
                   "tests/Privacy.Tests.ps1",
                   "tests/Runtime-Safety.Tests.ps1",
                   "tests/SafeExport.Tests.ps1",
+                  "tests/Summary.Tests.ps1",
                   "Write-ADBMedicPreliminary.ps1"
               ]
 }

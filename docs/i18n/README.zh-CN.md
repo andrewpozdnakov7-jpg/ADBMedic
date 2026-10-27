@@ -22,6 +22,8 @@ irm https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/main/run.ps1
 
 ## 已下载项目？
 
+ZIP 中包含 **SUMMARY.md** 和 **facts.json.analysis** 中的结构化电池资料：统计时段、UID 与软件包关系、耗电估算、明确类型的计数器和源文件行号。缺失数据、未知格式与矛盾会明确标注。完整原始文件仍保存在 evidence 中；预处理不会直接判定故障原因。
+
 将采集后显示的启动提示词与 ZIP 一起发送到聊天中。提示词也保存在报告以及 ZIP 旁边和内部的 **START-PROMPT.txt** 中。AI 默认使用 Windows 显示语言回答；用户在聊天中明确要求的其他语言优先。
 
 在项目文件夹中打开 PowerShell，然后运行：
