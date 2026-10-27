@@ -55,7 +55,7 @@ function adb {
         return 'TEST_SYNTHETIC_BUILD'
     }
     if($args[3] -eq 'pm'){
-        if(($args[4..6] -join ' ') -ne 'list packages -U'){throw 'Unexpected package operation.'}
+        if(($args[4..8] -join ' ') -ne 'list packages -U --user current'){throw 'Unexpected package operation.'}
         return 'package:com.example.synthetic uid:10123'
     }
     if ($args[3] -notin @('dumpsys','top')) { throw 'Unexpected synthetic ADB shell operation.' }
@@ -64,6 +64,7 @@ function adb {
         return @('800%cpu 80%user 0%nice 0%sys 720%idle 0%iow 0%irq 0%sirq 0%host','PID USER PR NI VIRT RES SHR S[%CPU] %MEM TIME+ ARGS','4242 u0_a123 20 0 1G 20M 1M R 80.0 0.1 0:01.00 com.example.synthetic')
     }
     if($args[4] -eq 'batterystats'){
+        if($runtimeTestState.Case -eq 'secret'){return ('gh'+'p_'+('X'*36))}
         if($runtimeTestState.Case -eq 'unsupported'){return 'TEST_UNKNOWN_FORMAT'}
         return @('Time on battery: 2h 0m 0s (50%) realtime, 1h 0m 0s (50%) uptime','Uid u0a123: 3.0 (cpu=2.0)')
     }
@@ -122,6 +123,7 @@ try {
         Assert ($call[0] -in @('start-server','devices','-s')) 'only expected ADB entry points are used'
         Assert (@($call | Where-Object { $_ -in @('root','reboot','kill','kill-server','install','uninstall','disable','clear','flash','setprop') }).Count -eq 0) 'no device changes are requested'
     }
+    Assert (@($runtimeTestState.Calls|Where-Object {($_ -join ' ') -match 'pm list packages -U --user current$'}).Count -eq 1) 'package listing targets current Android user rather than inaccessible other profiles'
     foreach($culture in @('ru-RU','en-US')) {
         [Threading.Thread]::CurrentThread.CurrentUICulture=[Globalization.CultureInfo]::GetCultureInfo($culture)
         $runtimeTestState.Case='no-device'
@@ -152,6 +154,12 @@ try {
     Assert ($created.Count -eq 1 -and (Test-Path -LiteralPath (Join-Path $created[0].FullName 'exports/ADBMedic-report.zip'))) 'unrecognized OEM evidence is retained for the diagnostic analyst'
     $handoff=[IO.File]::ReadAllText((Join-Path $created[0].FullName 'exports/facts.json'))|ConvertFrom-Json
     Assert ($handoff.schemaVersion -eq 2 -and $handoff.complaint -ceq 'TEST_SYNTHETIC_SYMPTOM') 'runtime handoff preserves complaint in schema 2'
+    $runtimeTestState.Case='secret';$runtimeTestState.Prompts=0
+    $log=@(& (Join-Path $root 'Start-ADBMedic.ps1') -Language en-US -NoBrowser -SkipInstall *>&1)
+    $display=$log -join "`n"
+    Assert ($display.Contains('possible secret') -and $display.Contains('battery.txt')) 'runtime shows safe specific packaging failure rather than a generic warning'
+    Assert (-not $display.Contains(('X'*36)) -and -not $display.Contains($testRoot)) 'specific packaging warning hides secret values and private paths'
+    Assert (-not $display.Contains('START-PROMPT.txt')) 'failed packaging does not print a starter for a nonexistent ZIP'
     Write-Host ('Offline runtime safety tests: PASS ('+$runtimeTestState.Passed+' assertions).')
 } finally {
     $env:LOCALAPPDATA=$savedLocalData

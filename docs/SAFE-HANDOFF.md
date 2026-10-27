@@ -21,7 +21,9 @@ The AI answer defaults to the full Windows display locale (or an explicit collec
 
 ## Boundaries
 
-Only fixed source filenames are read. Inputs require strict UTF-8, no NUL, regular files, a non-reparse local session path and at most 16 MiB per file / 64 MiB of evidence. The scanner blocks known credential/key patterns; it does not claim universal secret detection or anonymization. Unknown extra files are ignored. Existing exports are never overwritten. ZIP entries are checked against the expected list and their exact text is compared before the export becomes visible.
+Only fixed source filenames are read. Inputs require strict UTF-8, no NUL, regular files, a non-reparse local session path and at most 64 MiB per file / 128 MiB of evidence. The same per-file limit applies when validating ZIP entries; evidence is not silently truncated. A 16 MiB limit was too small for real batterystats dumps. Limit, secret, missing-context and input errors have separate safe messages identifying only known filenames, never matched values or private paths. The scanner blocks known credential/key patterns; it does not claim universal secret detection or anonymization. Unknown extra files are ignored. Existing exports are never overwritten. ZIP entries are checked against the expected list and their exact text is compared before the export becomes visible.
+
+The package-to-UID query uses `pm list packages -U --user current` to avoid requesting inaccessible secondary profiles. Other users' packages can remain unmapped. Failed old-session package queries remain explicit; rebuilding an archive cannot recover data that was not collected.
 
 Source publication uses the separate Worktree/Staged/History gates and a positive source manifest. The legacy numeric/P-label v1 projector remains for compatibility tests only; Package-ADBMedic.ps1 now creates the diagnostic v2 archive. Automatic cloud analysis remains disabled.
 

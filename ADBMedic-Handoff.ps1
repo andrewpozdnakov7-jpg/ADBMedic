@@ -1,4 +1,17 @@
 ﻿# Manual diagnostic handoff. This archive is private evidence, never a source artifact.
+function Get-ADBMedicHandoffLimits {
+    return [pscustomobject]@{FileBytes=67108864;TotalBytes=134217728}
+}
+
+function Stop-ADBMedicHandoff {
+    param([string]$Reason,[string]$File='')
+    $failure=New-Object IO.InvalidDataException('Diagnostic export rejected.')
+    $failure.Data['ADBMedicReason']=$Reason
+    $allowed=@('profile.json','symptom.txt','collection.json','cpu.txt','top.txt','battery.txt','battery-state.txt','power.txt','thermal.txt','camera.txt','sensors.txt','packages.txt','alarms.txt','jobs.txt','deviceidle.txt')
+    if($allowed -ccontains $File){$failure.Data['ADBMedicFile']=$File}
+    throw $failure
+}
+
 function Assert-ADBMedicDiagnosticText {
     param([string]$Text)
     $patterns=@(
@@ -8,7 +21,7 @@ function Assert-ADBMedicDiagnosticText {
         '(?i)\b(?:password|passwd|api[_-]?key|access[_-]?token|client[_-]?secret|signing[_-]?password)\s*["'']?\s*[:=]\s*["'']?[^\s"'',;}]{3,}',
         '(?i)\bAuthorization\s*:\s*(?:Bearer|Basic)\s+\S+'
     )
-    foreach($pattern in $patterns){if($Text -match $pattern){throw 'Credential-like content blocks diagnostic handoff.'}}
+    foreach($pattern in $patterns){if($Text -match $pattern){Stop-ADBMedicHandoff 'secret'}}
 }
 
 function Read-ADBMedicDiagnosticText {
@@ -16,11 +29,13 @@ function Read-ADBMedicDiagnosticText {
     $path=Join-Path $Session $Name
     if(-not (Test-Path -LiteralPath $path -PathType Leaf)){return $null}
     $file=Get-Item -LiteralPath $path -Force
-    if(($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $file.Length -gt 16777216){throw 'Unsupported evidence input.'}
+    if($file.Attributes -band [IO.FileAttributes]::ReparsePoint){Stop-ADBMedicHandoff 'unsafe-input' $Name}
+    if($file.Length -gt (Get-ADBMedicHandoffLimits).FileBytes){Stop-ADBMedicHandoff 'input-too-large' $Name}
     $bytes=[IO.File]::ReadAllBytes($path)
-    if($bytes -contains 0){throw 'Binary evidence input.'}
-    $text=([Text.UTF8Encoding]::new($false,$true)).GetString($bytes).TrimStart([char]0xFEFF)
-    Assert-ADBMedicDiagnosticText $text
+    if($bytes.Length -gt (Get-ADBMedicHandoffLimits).FileBytes){Stop-ADBMedicHandoff 'input-too-large' $Name}
+    if($bytes -contains 0){Stop-ADBMedicHandoff 'invalid-text' $Name}
+    try{$text=([Text.UTF8Encoding]::new($false,$true)).GetString($bytes).TrimStart([char]0xFEFF)}catch{Stop-ADBMedicHandoff 'invalid-text' $Name}
+    try{Assert-ADBMedicDiagnosticText $text}catch{if($_.Exception.Data['ADBMedicReason'] -eq 'secret'){$_.Exception.Data['ADBMedicFile']=$Name};throw}
     return $text
 }
 
@@ -42,11 +57,12 @@ function New-ADBMedicDiagnosticBundle {
     $answerCulture=[Globalization.CultureInfo]::GetCultureInfo($AnswerLocale)
     $AnswerLocale=$answerCulture.Name
     $Session=Resolve-ADBMedicPrivateSession $Session
+    $limits=Get-ADBMedicHandoffLimits
     $destination=Join-Path $Session 'exports'
-    if(Test-Path -LiteralPath $destination){throw 'An export already exists; collect a new session.'}
+    if(Test-Path -LiteralPath $destination){Stop-ADBMedicHandoff 'existing-export'}
     $profileText=Read-ADBMedicDiagnosticText $Session 'profile.json'
     $complaint=Read-ADBMedicDiagnosticText $Session 'symptom.txt'
-    if(-not $profileText -or $null -eq $complaint){throw 'Session context is missing.'}
+    if(-not $profileText -or $null -eq $complaint){Stop-ADBMedicHandoff 'missing-context'}
     $profile=$profileText|ConvertFrom-Json
     $context=[ordered]@{model=[string]$profile.model;android=[string]$profile.android;captured=[string]$profile.captured}
     if($profile.captured -is [datetime] -or $profile.captured -is [datetimeoffset]){$context.captured=([datetimeoffset]$profile.captured).ToUniversalTime().ToString('o')}
@@ -73,7 +89,7 @@ function New-ADBMedicDiagnosticBundle {
             }
             if($null -ne $text){
                 $size=$utf8.GetByteCount($text);$total+=$size
-                if($total -gt 67108864){throw 'Evidence exceeds archive limit.'}
+                if($total -gt $limits.TotalBytes){Stop-ADBMedicHandoff 'total-too-large'}
                 $status=if([string]::IsNullOrWhiteSpace($text)){'empty'}elseif($text -match '(?m)^\s*(?:Command failed:|Capture failed:)' -or ($null -ne $exitCode -and $exitCode -ne 0)){'failed'}else{'collected'}
                 if($status -eq 'collected'){$available++}
                 [IO.File]::WriteAllText((Join-Path $evidence $name),$text,$utf8)
@@ -128,16 +144,24 @@ function New-ADBMedicDiagnosticBundle {
         & (Join-Path $PSScriptRoot 'Show-ADBMedicReport.ps1') -InputFile (Join-Path $share 'REPORT.md') -Language $(if($UI -eq 'ru'){'ru-RU'}else{'en-US'}) -Deterministic|Out-Null
         $files=@('REPORT.md','REPORT.html','facts.json','MANUAL-ANALYSIS-PROMPT.md','START-PROMPT.txt')+@($sources|Where-Object status -ne missing|ForEach-Object {$_.file})
         foreach($name in $files){Assert-ADBMedicDiagnosticText ([IO.File]::ReadAllText((Join-Path $share $name)))}
+        Add-Type -AssemblyName System.IO.Compression
         Add-Type -AssemblyName System.IO.Compression.FileSystem
         $archivePath=Join-Path $stage 'ADBMedic-report.zip'
-        [IO.Compression.ZipFile]::CreateFromDirectory($share,$archivePath)
+        $archive=[IO.Compression.ZipFile]::Open($archivePath,[IO.Compression.ZipArchiveMode]::Create)
+        try{
+            foreach($name in $files){
+                $entry=$archive.CreateEntry($name,[IO.Compression.CompressionLevel]::Optimal)
+                $inputStream=[IO.File]::OpenRead((Join-Path $share $name));$outputStream=$entry.Open()
+                try{$inputStream.CopyTo($outputStream)}finally{$outputStream.Dispose();$inputStream.Dispose()}
+            }
+        }finally{$archive.Dispose()}
         $archive=[IO.Compression.ZipFile]::OpenRead($archivePath)
         try{
             if($archive.Entries.Count -ne $files.Count){throw 'Archive content count differs.'}
             $seen=@{}
             foreach($entry in $archive.Entries){
                 $name=$entry.FullName.Replace('\','/')
-                if($files -cnotcontains $name -or $seen.ContainsKey($name) -or $entry.Length -gt 16777216){throw 'Unexpected archive entry.'}
+                if($files -cnotcontains $name -or $seen.ContainsKey($name) -or $entry.Length -gt $limits.FileBytes){throw 'Unexpected archive entry.'}
                 $seen[$name]=$true
                 $reader=New-Object IO.StreamReader($entry.Open(),([Text.UTF8Encoding]::new($false,$true)))
                 try{$text=$reader.ReadToEnd()}finally{$reader.Dispose()}

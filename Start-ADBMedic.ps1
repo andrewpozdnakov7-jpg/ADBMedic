@@ -83,7 +83,7 @@ Capture 'power' @('shell','dumpsys','power') $folder $adb $serial
 Capture 'thermal' @('shell','dumpsys','thermalservice') $folder $adb $serial
 Capture 'camera' @('shell','dumpsys','media.camera') $folder $adb $serial
 Capture 'sensors' @('shell','dumpsys','sensorservice') $folder $adb $serial
-Capture 'packages' @('shell','pm','list','packages','-U') $folder $adb $serial
+Capture 'packages' @('shell','pm','list','packages','-U','--user','current') $folder $adb $serial
 Capture 'alarms' @('shell','dumpsys','alarm') $folder $adb $serial
 Capture 'jobs' @('shell','dumpsys','jobscheduler') $folder $adb $serial
 Capture 'deviceidle' @('shell','dumpsys','deviceidle') $folder $adb $serial
@@ -99,7 +99,8 @@ $bundle=$null
 try{
     $bundle=& (Join-Path $root 'Package-ADBMedic.ps1') -Session $folder -Language $locale.Locale -PassThru
 }catch{
-    Write-Warning $t.shareBlocked
+    $failure=[string]$_.Exception.Message
+    if($failure.StartsWith('[ADBMEDIC-EXPORT] ')){Write-Warning $failure.Substring('[ADBMEDIC-EXPORT] '.Length)}else{Write-Warning $t.shareBlocked}
 }
 $privateReport=Join-Path $folder 'REPORT.md'
 if($bundle -and $bundle.Ready){

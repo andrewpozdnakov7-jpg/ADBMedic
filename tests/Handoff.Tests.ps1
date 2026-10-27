@@ -77,13 +77,36 @@ try{
     foreach($secret in @(('gh'+'p_'+('X'*36)),('api'+'_key = "TEST_SECRET_VALUE"'),(('-'*5)+'BEGIN '+'PRIVATE KEY'+('-'*5)),('Authorization: '+'Bearer TEST_SECRET_VALUE'))){
         $session=New-Fixture ([guid]::NewGuid().ToString('N'))
         Write-Fixture $session 'battery.txt' $secret
-        $blocked=$false;try{New-ADBMedicDiagnosticBundle $session en|Out-Null}catch{$blocked=$true;Assert (-not $_.Exception.Message.Contains('TEST_SECRET_VALUE')) 'blocked export does not echo secret'}
+        $blocked=$false;try{New-ADBMedicDiagnosticBundle $session en|Out-Null}catch{$blocked=$true;Assert (-not $_.Exception.Message.Contains('TEST_SECRET_VALUE')) 'blocked export does not echo secret';Assert ($_.Exception.Data['ADBMedicReason'] -ceq 'secret') 'secret rejection has a safe structured reason'}
         Assert ($blocked -and -not(Test-Path -LiteralPath (Join-Path $session 'exports'))) 'synthetic secret blocks the whole export'
     }
     $session=New-Fixture 'invalid-time'
     Write-Fixture $session 'collection.json' '[{"file":"top.txt","startedUtc":"2000-01-02T00:00:00Z","finishedUtc":"2000-01-01T00:00:00Z","exitCode":0}]'
     $blocked=$false;try{New-ADBMedicDiagnosticBundle $session en|Out-Null}catch{$blocked=$true}
     Assert $blocked 'reversed capture interval is rejected'
+    $session=New-Fixture 'large-evidence'
+    Write-Fixture $session 'battery.txt' ([string]::new([char]'Z',17825792))
+    $bundle=New-ADBMedicDiagnosticBundle $session en
+    Assert ($bundle.Ready -and (Get-Item -LiteralPath (Join-Path $bundle.Directory 'evidence/battery.txt')).Length -eq 17825792) 'evidence above the former 16 MiB cap is retained in full'
+    $zip=[IO.Compression.ZipFile]::OpenRead((Join-Path $bundle.Directory $bundle.ArchiveName))
+    try{
+        Assert ($zip.GetEntry('evidence/battery.txt').Length -eq 17825792) 'large evidence is not truncated inside the ZIP'
+        Assert (@($zip.Entries|Where-Object {$_.FullName.Contains('\')}).Count -eq 0) 'ZIP paths use standard separators on every PowerShell engine'
+    }finally{$zip.Dispose()}
+    foreach($locale in @('ru-RU','en-US')){
+        $session=New-Fixture ('oversize-'+$locale)
+        $stream=[IO.File]::OpenWrite((Join-Path $session 'battery.txt'))
+        try{$stream.SetLength((Get-ADBMedicHandoffLimits).FileBytes+1)}finally{$stream.Dispose()}
+        $message=''
+        try{& (Join-Path $root 'Package-ADBMedic.ps1') -Session $session -Language $locale -PassThru|Out-Null}catch{$message=$_.Exception.Message}
+        Assert ($message.StartsWith('[ADBMEDIC-EXPORT] ') -and $message.Contains('battery.txt') -and $message.Contains('64')) 'oversize error identifies the known file and limit'
+        Assert (-not $message.Contains($stage) -and -not(Test-Path -LiteralPath (Join-Path $session 'exports'))) 'size rejection hides private paths and creates no archive'
+    }
+    $session=New-Fixture 'secret-message'
+    Write-Fixture $session 'battery.txt' ('gh'+'p_'+('X'*36))
+    $message=''
+    try{& (Join-Path $root 'Package-ADBMedic.ps1') -Session $session -Language en-US -PassThru|Out-Null}catch{$message=$_.Exception.Message}
+    Assert ($message.Contains('possible secret') -and $message.Contains('battery.txt') -and -not $message.Contains(('X'*36)) -and -not $message.Contains($stage)) 'secret error gives actionable location without its value or private path'
     Write-Output ('Offline handoff tests: PASS ('+$passed+' assertions).')
 }finally{
     $target=[IO.Path]::GetFullPath($stage)
