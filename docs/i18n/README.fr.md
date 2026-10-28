@@ -38,7 +38,9 @@ L'IA doit expliquer les observations, proposer des étapes ou demander une véri
 
 Le rapport contient des informations privées sur le téléphone et ses applications. Le script n'envoie rien automatiquement. Partagez le ZIP uniquement avec l'IA choisie, pas sur GitHub. Vous pouvez ensuite désactiver le débogage USB. L'interface du script est en russe ou en anglais.
 
-Si l'IA demande des mesures supplémentaires, suivez les [instructions locales](../../agent/investigation-rules.md#running-a-follow-up-request-on-windows).
+Gardez cette fenêtre ouverte. Si l'IA demande des mesures supplémentaires, choisissez **3** ici : sélectionnez le JSON téléchargé ou collez le JSON et terminez par **END** sur une ligne séparée. Vérifiez et confirmez les mesures, puis joignez le **nouveau ZIP à la même conversation avec l'IA**. Si la fenêtre est fermée, relancez la même commande et choisissez **Reprendre l'enquête** ; le dossier est enregistré. [Aide](../../agent/investigation-rules.md#running-a-follow-up-request-on-windows).
+
+Si des mesures fiables existent, l'IA doit montrer un graphique utile avec heures, unités, sources et lacunes. Si les données manquent, elle doit le préciser.
 
 <details>
 <summary>Le projet est déjà téléchargé ?</summary>

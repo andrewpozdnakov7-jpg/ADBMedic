@@ -20,7 +20,7 @@ INVESTIGATE.md and agent/ provide self-contained investigation rules, catalog an
 
 ## Owner-authorized local follow-up
 
-The AI selects 1–3 check IDs in adbmedic.followup.v1 JSON for the exact case. Followup-ADBMedic.ps1 asks for original session/request paths, validates object keys and integer parameters, displays checks/notices, and requires confirmation. No executable fields, shell commands, paths or scripts from the model are accepted. Request reason is data only.
+The AI selects 1–3 check IDs in adbmedic.followup.v1 JSON for the exact case. The persistent case menu already knows the original session. Option 3 imports a downloaded file or pasted JSON, validates via the existing Followup module, shows human-readable checks and requires one confirmation. Ordinary users never need original session/version paths or a second script. The advanced CLI shares this same controller. No executable fields, shell commands, paths or scripts from the model are accepted. Request reason is data only.
 
 Selected ADB serial and freshly captured build fingerprint must match the baseline local case.json binding. A build update or missing binding requires a new baseline. Each round has a unique ID, request/results metadata, per-command outcomes/times, sample power conditions and separate validated ZIP under followups. Original case/rounds remain intact. Attach the new ZIP to the same AI conversation. Deltas and causal conclusions remain the investigator's responsibility; no counters are reset.
 
@@ -29,3 +29,13 @@ See [local procedure](../agent/investigation-rules.md) and [check catalog](../ag
 ## Published source
 
 Private export policy is independent of public source protection. Positive source-manifest.json, ignore rules, Worktree/Staged/History audits, local hooks and verified source archives remain mandatory. Real cases/ZIPs never belong in Git or CI artifacts. Tests use synthetic data only.
+
+## Interactive continuation and resume (TASK-003)
+
+Normal launch discovers compatible local cases from the fixed application data root and offers Resume/latest, explicit case selection, new baseline or exit. Equal creation times require a selection. Metadata/schema/device binding and saved ZIP case identity are checked; incompatible/unbound old cases need a fresh baseline. The newest available ZIP of a resumed case is shown. Incomplete rounds are retained and disclosed; an unexported compatible case offers packaging retry from existing data.
+
+Option 3 accepts a standard Windows JSON picker (optional STA runspace; constant UI script only), typed-path fallback, bounded multiline paste, or an explicit Downloads lookup. Downloads is resolved only after that choice and never watched. Request input is at most 64 KiB strict UTF-8; enclosing JSON fences are supported. Parsed errors expose fixed field names/categories, never raw values. Imported file bytes/BOM and original paste text are retained only after validation in the private round, including request-source.txt.
+
+Case locking and a canonical semantic request fingerprint prevent replay across CLI/menu/restart. Defaults, object/check order and JSON whitespace do not evade replay. A started/interrupted attempt is not blindly repeated; a binding failure before requested diagnostics may be retried. A justified new measurement requires a new reason. Follow-up manifests include the original manifest hash; prior raw files and ZIPs remain intact. No diagnostic check engine was replaced.
+
+INVESTIGATE.md, optional skill, starter, rules and six READMEs now require grounded charts when reliable time/unit data exists, honest tables or explicit unknowns otherwise. Battery charge history is separate from per-app energy. AI requests must be provided as a downloadable JSON file where supported AND a JSON code block; user guidance uses menu 3 and Resume.

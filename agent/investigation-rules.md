@@ -10,20 +10,14 @@ The collector's capability evidence and actual command status matter. Unsupporte
 
 ## Running a follow-up request on Windows
 
-The AI returns JSON, not an executable command string. Save it as `followup-request.json` anywhere outside the source repository. Keep the original installed ADBMedic version and original case folder. The collector has no automatic AI connection.
+Provide a complete followup-request.json with the actual case_id BOTH as a downloadable JSON file where supported AND as a standalone JSON code block. Explain why each selected catalog check discriminates between hypotheses. The owner downloads/copies it, chooses 3 in the SAME ADBMedic window, imports the file or pastes JSON, confirms the checks and attaches the NEW ZIP to the same AI conversation. Paste ends with END on a separate line; CANCEL cancels. There is a 64 KiB input bound. A whole ```json block is accepted; surrounding prose is not executed.
 
-In Windows PowerShell, enter the folder containing the installed ADBMedic scripts and run:
+Option 3 offers a standard JSON file picker with a typed-path fallback, paste, or an explicit lookup in Downloads. Downloads is never watched. Multiple downloaded requests require an explicit selection. The original case is already known; do not ask for session/version paths or a second PowerShell script. After restart, relaunch with the ordinary one-command entry point and choose Resume investigation. The latest valid case is offered; ambiguous timestamps require a choice. Cases with incompatible metadata or missing binding require a new baseline, without deleting original files.
 
-```powershell
-.\Followup-ADBMedic.ps1
-```
+The menu shows requested measurements and relevant notices before one confirmation. The same validator and diagnostic runner check schema/fields/types/ranges, case ID, supported catalog checks and phone/build binding. Replay fingerprints survive restart; an interrupted request is not blindly repeated. When a new repetition is actually justified, explain the changed measurement purpose in a new request's reason. Prior ZIPs and raw evidence remain intact. Each round includes request evidence, statuses/times, power conditions, unique round ID and reference to the original manifest. No model command strings are evaluated or uploaded.
 
-It asks for the ORIGINAL session folder and saved JSON path, shows the requested check IDs and relevant notices, then asks for confirmation. The original folder is the parent of the `exports` folder opened by option 2 after collection. To find the installed scripts, use:
+## Grounded visualizations
 
-```powershell
-explorer.exe (Join-Path $env:LOCALAPPDATA 'ADBMedic\app')
-```
+Draw a chart when reliable numeric time-series with timestamps and units clarify the complaint. Prefer native AI chart tools; otherwise use Markdown-compatible visualization or an honest table. Battery charge (%) versus local DEVICE time must identify axes, timezone, source file/lines and time range, observed charging/USB intervals, discharge spans, gaps and events. Mark actual recorded points separately from derived/approximate transitions; never invent precision, interpolate uncaptured values, bridge gaps as measured evidence, or treat historical charge as per-app energy. Choose other CPU/thermal/event/sleep/UID visuals only when the evidence supports them. With missing/inconsistent/unreadable data, state the limitation instead of inventing a graph. Keep the plain-language conclusion, citations, competing hypotheses and next test.
 
-Open the version folder used for the baseline. Do not select a different phone or edit case.json to bypass device/build correlation. Existing cases missing a local device binding need a new baseline. Results appear in the original case's `followups` subfolder with a separate `exports` folder. The terminal prints the ZIP location. Attach that ZIP to the same AI conversation. The original case and previous rounds are never overwritten. No arbitrary commands from the AI are executed.
-
-If a check is blocked, report its command outcome and stderr. Do not request root or disable safeguards. If the structured runner cannot perform a needed measurement, give a short, focused read-only manual procedure adapted to confirmed device capabilities, explain its privacy implications, and have the owner decide. An unavailable check is a limitation, not a reason to claim a diagnosis.
+Advanced automation may still invoke Followup-ADBMedic.ps1 -Case ... -Request ..., but ordinary user guidance must use the persistent menu and Resume workflow. There is no live AI-to-ADB connection. Blocked/unsupported measurements remain explicit; do not request root or bypass safeguards.

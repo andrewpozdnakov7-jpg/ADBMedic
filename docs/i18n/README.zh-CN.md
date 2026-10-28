@@ -38,7 +38,9 @@ AI 应解释观察结果、给出操作步骤，或要求有针对性的补充�
 
 报告包含手机和应用的私密信息。脚本不会自动发送数据。只将 ZIP 交给你选择的 AI，不要发布到 GitHub。结束后可以关闭 USB 调试。脚本界面目前使用俄语或英语。
 
-如果 AI 要求补充测量，请按照[本地检查说明](../../agent/investigation-rules.md#running-a-follow-up-request-on-windows)操作。
+请保持此窗口打开。如果 AI 要求补充测量，在这里选择 **3**：选择下载的 JSON 文件，或粘贴 JSON 并在单独一行输入 **END**。查看并确认检查，然后将**新的 ZIP 发到同一个 AI 对话**。如果窗口已关闭，重新运行同一启动命令并选择**继续调查**；案例已保存。[更多帮助](../../agent/investigation-rules.md#running-a-follow-up-request-on-windows)。
+
+如果有可靠测量，AI 应展示包含时间、单位、来源和缺口的实用图表。缺少数据时应明确说明。
 
 <details>
 <summary>已经下载了项目？</summary>

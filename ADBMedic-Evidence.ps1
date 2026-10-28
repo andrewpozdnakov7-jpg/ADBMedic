@@ -99,7 +99,7 @@ function Invoke-ADBMedicCapture {
 
 function Get-ADBMedicEvidenceNames {
     param([object[]]$Captures)
-    $names=@((Get-ADBMedicBaseline).file)+@('profile.json','symptom.txt','collection.json','locale.json','request.json','followup-results.json')
+    $names=@((Get-ADBMedicBaseline).file)+@('profile.json','symptom.txt','collection.json','locale.json','request.json','request-source.txt','followup-results.json')
     foreach($record in $Captures){
         foreach($name in @($record.file,$record.stderrFile)){
             if($name -and $name -cmatch '^[a-z0-9-]+(?:\.stderr)?\.txt$'){$names+=,$name}

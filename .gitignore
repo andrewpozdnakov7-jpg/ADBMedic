@@ -66,6 +66,8 @@ __pycache__/
 **/request.json
 **/followup-request.json
 **/followup-results.json
+**/request-source.txt
+**/investigation.lock
 **/START-PROMPT.txt
 **/SUMMARY.md
 **/*.stderr.txt
