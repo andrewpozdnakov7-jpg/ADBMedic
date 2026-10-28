@@ -1,0 +1,6 @@
+{
+  "schema":"adbmedic.followup.v1",
+  "case_id":"COPY_CASE_ID_FROM_MANIFEST",
+  "reason":"CPU activity is observed, but per-thread evidence is missing; compare leading hypotheses.",
+  "checks":[{"id":"cpu_threads","target_pid":321,"samples":3,"interval_seconds":5}]
+}

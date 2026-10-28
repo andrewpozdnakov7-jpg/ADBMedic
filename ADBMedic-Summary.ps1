@@ -1,4 +1,36 @@
 ﻿# Deterministic battery evidence extraction. Unknown formats remain in raw evidence.
+function New-ADBMedicAnalysisReader {
+    param([string]$Path)
+    if(-not ('ADBMedic.AnalysisReader' -as [type])){
+        Add-Type -TypeDefinition @'
+using System;
+using System.IO;
+using System.Text;
+namespace ADBMedic {
+    public sealed class AnalysisReader : IDisposable {
+        private readonly StreamReader reader;
+        public int SkippedLines { get; private set; }
+        public AnalysisReader(string path) { reader = new StreamReader(path, new UTF8Encoding(false, false), true, 8192); }
+        public string ReadLine() {
+            var text = new StringBuilder(); bool any = false, oversized = false;
+            int c;
+            while ((c = reader.Read()) != -1) {
+                any = true;
+                if (c == 10) break;
+                if (text.Length < 65536) text.Append((char)c); else oversized = true;
+            }
+            if (!any) return null;
+            if (oversized) { SkippedLines++; return "ADBMEDIC_UNPARSED_OVERSIZE_LINE"; }
+            return text.ToString().TrimEnd('\r');
+        }
+        public void Dispose() { reader.Dispose(); }
+    }
+}
+'@
+    }
+    return New-Object ADBMedic.AnalysisReader($Path)
+}
+
 function ConvertTo-ADBMedicUid {
     param([string]$Text)
     if($Text -cmatch '^\d{1,9}$'){return ([long]$Text).ToString([Globalization.CultureInfo]::InvariantCulture)}
@@ -28,7 +60,7 @@ function ConvertTo-ADBMedicDurationSeconds {
 }
 
 function Get-ADBMedicBatteryAnalysis {
-    param([string]$EvidenceRoot)
+    param([string]$EvidenceRoot,[string[]]$UnavailableFiles=@())
     $windows=New-Object 'System.Collections.Generic.List[object]'
     $energy=New-Object 'System.Collections.Generic.List[object]'
     $counters=New-Object 'System.Collections.Generic.List[object]'
@@ -39,14 +71,14 @@ function Get-ADBMedicBatteryAnalysis {
     function Issue([string]$code,[int]$line){if($issues.Count -lt 200){$issues.Add([pscustomobject]@{code=$code;source=(Source 'battery.txt' $line)})}else{$coverage.outputLimited=$true}}
     function MapPackage([string]$uid,[string]$name,[string]$file,[int]$line){if($mappings.Count -lt 10000){$mappings.Add([pscustomobject]@{uid=$uid;package=$name;source=(Source $file $line)})}else{$coverage.outputLimited=$true}}
     $path=Join-Path $EvidenceRoot 'packages.txt'
-    if(Test-Path -LiteralPath $path -PathType Leaf){
-        $coverage.packageInventory='unrecognized-or-failed';$reader=[IO.File]::OpenText($path);$n=0
-        try{while($null -ne ($line=$reader.ReadLine())){$n++;if($line -cmatch '^package:(?<package>[A-Za-z0-9_.]+)\s+uid:(?<uid>\d{1,9})(?:\s|$)'){$uid=ConvertTo-ADBMedicUid $Matches.uid;MapPackage $uid $Matches.package 'packages.txt' $n;$coverage.packageInventory='available'}}}finally{$reader.Dispose()}
+    if(($UnavailableFiles -notcontains 'packages.txt') -and (Test-Path -LiteralPath $path -PathType Leaf)){
+        $coverage.packageInventory='unrecognized-or-failed';$reader=New-ADBMedicAnalysisReader $path;$n=0
+        try{while($null -ne ($line=$reader.ReadLine())){$n++;if($line -cmatch '^package:(?<package>[A-Za-z0-9_.]+)\s+uid:(?<uid>\d{1,9})(?:\s|$)'){$uid=ConvertTo-ADBMedicUid $Matches.uid;MapPackage $uid $Matches.package 'packages.txt' $n;$coverage.packageInventory='available'}}}finally{if($reader.SkippedLines){$issues.Add([pscustomobject]@{code='oversize-package-lines-not-parsed';source=(Source 'packages.txt' 1)})};$reader.Dispose()}
     }
     $path=Join-Path $EvidenceRoot 'battery.txt';$window=$null;$section=$null;$uid=$null
     $number='\d+(?:\.\d+)?(?:[eE][+-]?\d+)?';$duration='(?:\d+(?:\.\d+)?(?:ms|d|h|m|s)\s*)+'
-    if(Test-Path -LiteralPath $path -PathType Leaf){
-        $reader=[IO.File]::OpenText($path)
+    if(($UnavailableFiles -notcontains 'battery.txt') -and (Test-Path -LiteralPath $path -PathType Leaf)){
+        $reader=New-ADBMedicAnalysisReader $path
         try{
             while($null -ne ($line=$reader.ReadLine())){
                 $coverage.batteryLines++;$n=$coverage.batteryLines
@@ -103,7 +135,7 @@ function Get-ADBMedicBatteryAnalysis {
                     $counters.Add([pscustomobject]@{uid=$uid;windowId=$window.id;kind=$kind;tag=$tag;durationSeconds=$seconds;count=$count;source=(Source 'battery.txt' $n)});$coverage.counterRows++
                 }
             }
-        }finally{$reader.Dispose()}
+        }finally{if($reader.SkippedLines){Issue 'oversize-battery-lines-not-parsed' 1};$reader.Dispose()}
     }
     foreach($section in $energy){
         $seen=@{};$sum=0.0;$review=$false
@@ -115,6 +147,17 @@ function Get-ADBMedicBatteryAnalysis {
         }elseif($section.aggregates.Count -gt 1){Issue 'ambiguous-energy-aggregate' $section.source.line;$review=$true}
         $section.quality=if($review){'needs-review'}elseif($section.hasUnparsedRows){'partial-extraction'}elseif($section.unit -eq 'mAh' -and $section.entries.Count){'parsed-not-diagnosed'}else{'unsupported'}
     }
+    foreach($window in $windows){foreach($duration in $window.durations){$duration|Add-Member -NotePropertyName unit -NotePropertyValue 'seconds';$duration|Add-Member -NotePropertyName measurementKind -NotePropertyValue 'cumulative';$duration|Add-Member -NotePropertyName availability -NotePropertyValue 'available';$duration|Add-Member -NotePropertyName confidence -NotePropertyValue 'source-reported'}}
+    foreach($section in $energy){
+        foreach($entry in @($section.entries)+@($section.aggregates)){
+            $entry|Add-Member -NotePropertyName unit -NotePropertyValue 'mAh'
+            $entry|Add-Member -NotePropertyName measurementKind -NotePropertyValue 'estimated'
+            $entry|Add-Member -NotePropertyName windowId -NotePropertyValue $section.windowId
+            $entry|Add-Member -NotePropertyName availability -NotePropertyValue 'available'
+            $entry|Add-Member -NotePropertyName confidence -NotePropertyValue $section.quality
+        }
+    }
+    foreach($counter in $counters){$counter|Add-Member -NotePropertyName units -NotePropertyValue @{count='events';durationSeconds='seconds'};$counter|Add-Member -NotePropertyName measurementKind -NotePropertyValue 'cumulative';$counter|Add-Member -NotePropertyName availability -NotePropertyValue @{count=$(if($null -ne $counter.count){'available'}else{'unknown'});durationSeconds=$(if($null -ne $counter.durationSeconds){'available'}else{'unknown'})};$counter|Add-Member -NotePropertyName confidence -NotePropertyValue 'source-reported'}
     if($coverage.outputLimited){Issue 'parser-output-limit' $coverage.batteryLines}
     if(-not $windows.Count){Issue 'statistics-window-not-recognized' 1}
     $packages=@{};foreach($mapping in $mappings){if(-not $packages.ContainsKey($mapping.uid)){$packages[$mapping.uid]=@()};if($packages[$mapping.uid].package -cnotcontains $mapping.package){$packages[$mapping.uid]+=,$mapping}}

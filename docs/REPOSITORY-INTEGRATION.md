@@ -1,3 +1,5 @@
+Current behavior: [AGENTS.md](../AGENTS.md) and [local handoff v3](SAFE-HANDOFF.md). Earlier export bans below are historical and superseded.
+
 # Адаптация к GitHub-репозиторию
 
 Дата: 2026-10-26.

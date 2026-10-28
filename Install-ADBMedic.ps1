@@ -15,7 +15,9 @@ $files = @(
     'bootstrap.ps1', 'Start-ADBMedic.ps1', 'ADBMedic-Device.ps1',
     'ADBMedic-Locale.ps1', 'ADBMedic-SafeExport.ps1', 'ADBMedic-Handoff.ps1', 'ADBMedic-Summary.ps1', 'AI-ANALYST.md', 'Package-ADBMedic.ps1', 'Analyze-ADBMedic.ps1',
     'Prepare-ADBMedicEvidence.ps1', 'Write-ADBMedicPreliminary.ps1',
-    'Show-ADBMedicReport.ps1', 'README.md', 'LICENSE'
+    'Show-ADBMedicReport.ps1', 'README.md', 'LICENSE',
+    'ADBMedic-Evidence.ps1', 'ADBMedic-Case.ps1', 'ADBMedic-Followup.ps1', 'Followup-ADBMedic.ps1',
+    'INVESTIGATE.md', 'agent/investigation-rules.md', 'agent/check-catalog.json', 'agent/followup-request.example.json'
 )
 
 if ([string]::IsNullOrWhiteSpace($InstallRoot)) {
@@ -66,6 +68,7 @@ try {
     [IO.Directory]::CreateDirectory($stage) | Out-Null
     foreach ($name in $files) {
         $destination = Join-Path $stage $name
+        [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination)) | Out-Null
         $uri = 'https://raw.githubusercontent.com/andrewpozdnakov7-jpg/ADBMedic/' + $revision + '/' + $name
         Invoke-WebRequest -UseBasicParsing -Uri $uri -OutFile $destination -TimeoutSec 30 | Out-Null
         if (-not (Test-Path -LiteralPath $destination -PathType Leaf) -or (Get-Item -LiteralPath $destination).Length -eq 0) {

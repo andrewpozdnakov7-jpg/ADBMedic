@@ -102,7 +102,7 @@ function Get-PrivacyTextFindings {
 function Test-PrivacyForbiddenPath {
     param([string]$Name)
     if($Name -ceq '.github/workflows/ci.yml'){return $false}
-    return $Name -match '(?i)(^|/)(?:\.git|\.github|data|tools|sessions|reports|exports|private-local|raw|app|\.test-work|\.vscode|\.idea)(/|$)|(^|/)\.env(?:\.|$)|\.(?:zip|7z|tar|gz|log|tmp|bak|secret|token|exe|dll|apk|aab|bin|jks|keystore|p12|pfx|pem|key|cer|crt|der)$|(^|/)(?:profile|device|locale)\.json$|(^|/)(?:REPORT\.(?:html|md)|(?:bugreport|logcat).*|symptom\.txt|(?:cpu|top|battery|power|thermal|camera|sensors|build)\.txt)$'
+    return $Name -match '(?i)(^|/)(?:\.git|\.github|data|tools|sessions|reports|exports|private-local|raw|evidence|followups|app|\.test-work|\.vscode|\.idea)(/|$)|(^|/)\.env(?:\.|$)|\.(?:zip|7z|tar|gz|log|tmp|bak|secret|token|exe|dll|apk|aab|bin|jks|keystore|p12|pfx|pem|key|cer|crt|der)$|(^|/)(?:profile|device|locale|case|manifest|conditions|facts|collection|request|followup-request|followup-results)\.json$|(^|/)(?:REPORT\.(?:html|md)|(?:bugreport|logcat).*|symptom\.txt|START-PROMPT\.txt|SUMMARY\.md|[^/]+\.stderr\.txt|(?:cpu|top|battery|power|thermal|camera|sensors|build|services|uptime|device-clock|model|android|sdk|manufacturer|build-fingerprint|build-id|security-patch|hardware|display|connectivity|wifi|network|storage|audio|processes)\.txt)$'
 }
 
 function Get-PrivacyManifest {

@@ -4,7 +4,8 @@ param(
     [string]$Language='auto',
     [switch]$SkipInstall,
     [switch]$SkipAI,
-    [switch]$NoBrowser
+    [switch]$NoBrowser,
+    [ValidateRange(1,86400)][int]$CommandTimeoutSeconds=1200
 )
 $ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
@@ -33,22 +34,13 @@ function EnsureAdb {
     if(-not (Test-Path -LiteralPath $local)){throw 'ADB installation incomplete.'}
     return $local
 }
+. (Join-Path $root 'ADBMedic-Evidence.ps1')
+. (Join-Path $root 'ADBMedic-Case.ps1')
 function Capture([string]$name,[string[]]$argv,[string]$folder,[string]$adb,[string]$serial) {
-    $path=Join-Path $folder ($name+'.txt')
-    $started=[DateTime]::UtcNow.ToString('o')
-    $code=$null
-    try{
-        $text=(& $adb -s $serial @argv 2>&1 | Out-String)
-        $code=$LASTEXITCODE
-        if($code -ne 0){$text='Command failed: '+$text}
-        [IO.File]::WriteAllText($path,$text,[Text.Encoding]::UTF8)
-    }catch{
-        [IO.File]::WriteAllText($path,'Capture failed: '+$_.Exception.Message,[Text.Encoding]::UTF8)
-    }finally{
-        $captures.Add([pscustomobject]@{file=($name+'.txt');command=($argv -join ' ');startedUtc=$started;finishedUtc=[DateTime]::UtcNow.ToString('o');exitCode=$code})
-    }
+    $record=Invoke-ADBMedicCapture $adb (@('-s',$serial)+$argv) $folder ($name+'.txt') $CommandTimeoutSeconds $name
+    $captures.Add($record)
+    Write-ADBMedicJson (Join-Path $folder 'collection.json') @($captures.ToArray())
 }
-
 # Retain old command-line parameters for compatibility. There is one available
 # workflow: local collection and reports. No mode choice is needed.
 $Mode='offline'
@@ -60,41 +52,34 @@ if($LASTEXITCODE -ne 0){throw 'ADB server failed.'}
 . (Join-Path $root 'ADBMedic-Device.ps1')
 $serial=Select-ADBMedicAdbDevice -Adb $adb -UI $locale.UI
 if(-not $serial){return}
-$model=(& $adb -s $serial shell getprop ro.product.model | Out-String).Trim()
-$android=(& $adb -s $serial shell getprop ro.build.version.release | Out-String).Trim()
 Write-Host 'ADB device ready.'
 $symptom=Read-Host $t.symptom
 if([string]::IsNullOrWhiteSpace($symptom)){$symptom=$t.noSymptom}
 $folder=Join-Path $work ('session-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Force -Path $folder | Out-Null
 [IO.File]::WriteAllText((Join-Path $folder 'symptom.txt'),$symptom,[Text.Encoding]::UTF8)
-@{captured=(Get-Date).ToString('o');model=$model;android=$android} |
+@{captured=(Get-Date).ToString('o');model='unknown';android='unknown'} |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $folder 'profile.json') -Encoding UTF8
 @{requested=$Language;locale=$locale.Locale;ui=$locale.UI} |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $folder 'locale.json') -Encoding UTF8
 
 Write-Host $t.collecting -ForegroundColor Cyan
 $captures=New-Object 'System.Collections.Generic.List[object]'
-Capture 'cpu' @('shell','dumpsys','cpuinfo') $folder $adb $serial
-Capture 'top' @('shell','top','-b','-d','2','-n','3') $folder $adb $serial
-Capture 'battery' @('shell','dumpsys','batterystats') $folder $adb $serial
-Capture 'battery-state' @('shell','dumpsys','battery') $folder $adb $serial
-Capture 'power' @('shell','dumpsys','power') $folder $adb $serial
-Capture 'thermal' @('shell','dumpsys','thermalservice') $folder $adb $serial
-Capture 'camera' @('shell','dumpsys','media.camera') $folder $adb $serial
-Capture 'sensors' @('shell','dumpsys','sensorservice') $folder $adb $serial
-Capture 'packages' @('shell','pm','list','packages','-U','--user','current') $folder $adb $serial
-Capture 'alarms' @('shell','dumpsys','alarm') $folder $adb $serial
-Capture 'jobs' @('shell','dumpsys','jobscheduler') $folder $adb $serial
-Capture 'deviceidle' @('shell','dumpsys','deviceidle') $folder $adb $serial
-[IO.File]::WriteAllText((Join-Path $folder 'collection.json'),(ConvertTo-Json -InputObject @($captures.ToArray()) -Depth 5),[Text.Encoding]::UTF8)
-
+$state=Get-ADBMedicCaseState $folder
+$state.answerLocale=$locale.Locale
+$state.target=[pscustomobject]@{adbSerial=$serial;fingerprintSha256=$null}
+Write-ADBMedicJson (Join-Path $folder 'case.json') $state
+foreach($check in Get-ADBMedicBaseline){Capture $check.id $check.arguments $folder $adb $serial}
+$fingerprintRecord=$captures|Where-Object id -eq 'build-fingerprint'
+$fingerprintPath=Join-Path $folder 'build-fingerprint.txt'
+if($fingerprintRecord.status -eq 'collected' -and (Get-Item -LiteralPath $fingerprintPath).Length -gt 0){$state.target.fingerprintSha256=Get-ADBMedicHash $fingerprintPath}
+Write-ADBMedicJson (Join-Path $folder 'case.json') $state
 $preliminary=Join-Path $root 'Write-ADBMedicPreliminary.ps1'
 $viewer=Join-Path $root 'Show-ADBMedicReport.ps1'
 foreach($path in @($preliminary,$viewer)){
     if(-not (Test-Path -LiteralPath $path)){throw 'A required local project component is missing.'}
 }
-& $preliminary -Session $folder -Language $locale.Locale -NoBrowser | Out-Null
+
 $bundle=$null
 try{
     Write-Host $t.preparing -ForegroundColor Cyan
@@ -105,16 +90,10 @@ try{
 }
 $privateReport=Join-Path $folder 'REPORT.md'
 if($bundle -and $bundle.Ready){
-    $addition=New-Object 'System.Collections.Generic.List[string]'
-    $addition.Add('# ADBMedic — '+$t.preliminary)
-    $addition.Add('')
-    $notice=if($locale.UI -eq 'ru'){'Приватный локальный отчёт. Для передачи в чат используйте только подготовленный ZIP.'}else{'Private local report. Share only the prepared ZIP with an AI chat.'}
-    $addition.Add($notice)
-    $addition.Add([IO.File]::ReadAllText((Join-Path $bundle.Directory 'REPORT.md')).Substring("# ADBMedic`n".Length))
-    $addition.Add('## '+$t.findings)
-    $addition.Add([IO.File]::ReadAllText($privateReport))
-    [IO.File]::WriteAllText($privateReport,(($addition -join [Environment]::NewLine)+[Environment]::NewLine),[Text.Encoding]::UTF8)
-    & $viewer -InputFile $privateReport -Language $locale.Locale | Out-Null
+    [IO.File]::Copy((Join-Path $bundle.Directory 'REPORT.md'),$privateReport,$true)
+    [IO.File]::Copy((Join-Path $bundle.Directory 'REPORT.html'),(Join-Path $folder 'REPORT.html'),$true)
+}else{
+    & $preliminary -Session $folder -Language $locale.Locale -NoBrowser | Out-Null
 }
 Write-Host $t.reportReady -ForegroundColor Green
 if($bundle -and $bundle.Ready){

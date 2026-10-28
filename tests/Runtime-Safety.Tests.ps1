@@ -48,7 +48,7 @@ function adb {
         if ($runtimeTestState.Case -eq 'offline') { return 'TEST_SERIAL_001 offline' }
         return 'TEST_SERIAL_001 device product:synthetic'
     }
-    if ($args[0] -ne '-s' -or $args[2] -ne 'shell') { throw 'Unexpected synthetic ADB command.' }
+    if ($args[0] -ne '-s' -or $args[2] -notin @('shell','exec-out')) { throw 'Unexpected synthetic ADB command.' }
     if ($args[3] -eq 'getprop') {
         if ($args[4] -eq 'ro.product.model') { return 'TEST_MODEL' }
         if ($args[4] -eq 'ro.build.version.release') { return '14' }
@@ -58,7 +58,7 @@ function adb {
         if(($args[4..8] -join ' ') -ne 'list packages -U --user current'){throw 'Unexpected package operation.'}
         return 'package:com.example.synthetic uid:10123'
     }
-    if ($args[3] -notin @('dumpsys','top')) { throw 'Unexpected synthetic ADB shell operation.' }
+    if ($args[3] -notin @('dumpsys','top','cat','date','ps')) { throw 'Unexpected synthetic ADB shell operation.' }
     if($args[3] -eq 'top'){
         if($runtimeTestState.Case -eq 'unsupported'){return 'TEST_UNKNOWN_FORMAT'}
         return @('800%cpu 80%user 0%nice 0%sys 720%idle 0%iow 0%irq 0%sirq 0%host','PID USER PR NI VIRT RES SHR S[%CPU] %MEM TIME+ ARGS','4242 u0_a123 20 0 1G 20M 1M R 80.0 0.1 0:01.00 com.example.synthetic')
@@ -153,13 +153,12 @@ try {
     $created=@(Get-ChildItem -LiteralPath (Join-Path $testRoot 'ADBMedic/data') -Directory | Where-Object{$before -notcontains $_.FullName})
     Assert ($created.Count -eq 1 -and (Test-Path -LiteralPath (Join-Path $created[0].FullName 'exports/ADBMedic-report.zip'))) 'unrecognized OEM evidence is retained for the diagnostic analyst'
     $handoff=[IO.File]::ReadAllText((Join-Path $created[0].FullName 'exports/facts.json'))|ConvertFrom-Json
-    Assert ($handoff.schemaVersion -eq 2 -and $handoff.complaint -ceq 'TEST_SYNTHETIC_SYMPTOM') 'runtime handoff preserves complaint in schema 2'
+    Assert ($handoff.schemaVersion -eq 3 -and $handoff.complaint -ceq 'TEST_SYNTHETIC_SYMPTOM') 'runtime handoff preserves complaint in schema 3'
     $runtimeTestState.Case='secret';$runtimeTestState.Prompts=0
     $log=@(& (Join-Path $root 'Start-ADBMedic.ps1') -Language en-US -NoBrowser -SkipInstall *>&1)
     $display=$log -join "`n"
-    Assert ($display.Contains('possible secret') -and $display.Contains('battery.txt')) 'runtime shows safe specific packaging failure rather than a generic warning'
-    Assert (-not $display.Contains(('X'*36)) -and -not $display.Contains($testRoot)) 'specific packaging warning hides secret values and private paths'
-    Assert (-not $display.Contains('START-PROMPT.txt')) 'failed packaging does not print a starter for a nonexistent ZIP'
+    Assert ($display.Contains('START-PROMPT.txt')) 'private export preserves secret-like diagnostic evidence'
+    Assert (-not $display.Contains(('X'*36)) -and -not $display.Contains($testRoot)) 'terminal does not echo raw evidence or private paths'
     Write-Host ('Offline runtime safety tests: PASS ('+$runtimeTestState.Passed+' assertions).')
 } finally {
     $env:LOCALAPPDATA=$savedLocalData

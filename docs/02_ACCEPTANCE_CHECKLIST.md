@@ -1,3 +1,5 @@
+Historical baseline: superseded where conflicting by the current owner-authorized investigation workflow in [AGENTS.md](../AGENTS.md) and [SAFE-HANDOFF.md](SAFE-HANDOFF.md). Local private ZIP export and validated follow-up are enabled; published-source privacy gates remain mandatory.
+
 # Приёмка TASK-001 — чек-лист пользователя и менеджера
 
 ## Перед сдачей

@@ -1,3 +1,5 @@
+Historical baseline: superseded where conflicting by the current owner-authorized investigation workflow in [AGENTS.md](../AGENTS.md) and [SAFE-HANDOFF.md](SAFE-HANDOFF.md). Local private ZIP export and validated follow-up are enabled; published-source privacy gates remain mandatory.
+
 # План дальнейших этапов (только проектирование)
 
 **TASK-002: Диагностические данные как типизированные факты.** Источник raw -> parser -> набор строго разрешённых полей -> scrubber/validator -> проверка выходного файла -> ZIP. По умолчанию export only derived telemetry (CPU %, timestamp relative to session, generic process category, power state, thermal classes). Не помещать в безопасный архив оригинальные dumpsys/logcat/bugreport/backtraces по умолчанию. Пакет для облака — отдельный, гораздо меньший, чем локальный архив raw. Неизвестный формат -> reject, не «анонимизировать вслепую».

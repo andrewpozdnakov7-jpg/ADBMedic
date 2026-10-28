@@ -70,10 +70,10 @@ try {
     Assert ($launches[0].Mode -eq 'offline' -and $launches[0].Language -eq 'ru-RU') 'safe default and language are forwarded'
     Assert ($launches[0].SkipInstall -and $launches[0].NoBrowser) 'launch switches are forwarded'
     $installed = Join-Path $installRoot $installerTestState.Revision
-    Assert ((Get-ChildItem -LiteralPath $installed -File).Count -eq 15) 'only allowlisted source files are installed'
-    Assert ($installerTestState.Downloads.Count -eq 15) 'expected source request count'
+    Assert ((Get-ChildItem -LiteralPath $installed -File -Recurse).Count -eq 23) 'only allowlisted source files are installed'
+    Assert ($installerTestState.Downloads.Count -eq 23) 'expected source request count'
     Assert ($installerTestState.MetadataReads -eq 1 -and $installerTestState.RestApiCalls -eq 0) 'installation resolves the source revision without REST API quota'
-    Assert (@($installerTestState.Downloads | Where-Object { $_ -notmatch ('^https://raw\.githubusercontent\.com/andrewpozdnakov7-jpg/ADBMedic/' + $installerTestState.Revision + '/[^/]+$') }).Count -eq 0) 'all files use one pinned source revision'
+    Assert (@($installerTestState.Downloads | Where-Object { $_ -notmatch ('^https://raw\.githubusercontent\.com/andrewpozdnakov7-jpg/ADBMedic/' + $installerTestState.Revision + '/(?:agent/)?[^/]+$') }).Count -eq 0) 'all files use one pinned source revision'
 
     $result = @(& $installer -InstallRoot $installRoot)
     Assert (@($result | Where-Object { $_.Type -eq 'SyntheticLaunch' }).Count -eq 0) 'installation without Launch does not run the application'

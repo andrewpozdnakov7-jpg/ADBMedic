@@ -38,6 +38,8 @@ The AI should explain what the evidence shows, give steps to try, or ask for a s
 
 The report contains private details about your phone and apps. The script uploads nothing automatically. Share the ZIP only with the AI you choose, not on GitHub. You can turn off USB debugging afterward. The script interface currently uses Russian or English.
 
+If the AI asks for more measurements, follow the [local follow-up instructions](agent/investigation-rules.md#running-a-follow-up-request-on-windows).
+
 <details>
 <summary>Already downloaded the project?</summary>
 

@@ -38,6 +38,8 @@ AI 应解释观察结果、给出操作步骤，或要求有针对性的补充�
 
 报告包含手机和应用的私密信息。脚本不会自动发送数据。只将 ZIP 交给你选择的 AI，不要发布到 GitHub。结束后可以关闭 USB 调试。脚本界面目前使用俄语或英语。
 
+如果 AI 要求补充测量，请按照[本地检查说明](../../agent/investigation-rules.md#running-a-follow-up-request-on-windows)操作。
+
 <details>
 <summary>已经下载了项目？</summary>
 
