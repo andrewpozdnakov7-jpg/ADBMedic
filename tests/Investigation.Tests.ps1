@@ -92,7 +92,8 @@ $out.Flush();$err.Flush();exit 7
     foreach($call in $transportCalls){Assert (@($call|Where-Object {$_ -in @('root','reboot','kill','clear','reset','install','uninstall','setprop')}).Count -eq 0) 'only read-only command arguments are emitted'}
     $state.target.fingerprintSha256='TEST_OTHER_BUILD';Write-ADBMedicJson (Join-Path $session 'case.json') $state
     $callsBefore=$transportCalls.Count;$blocked=$false
-    try{Invoke-ADBMedicFollowupRound $session (Request) 'synthetic-adb' 'TEST_SERIAL'|Out-Null}catch{$blocked=$true}
+    $changedRequest=Request;$changedRequest.reason='TEST_NEW_BUILD_CHECK'
+    try{Invoke-ADBMedicFollowupRound $session $changedRequest 'synthetic-adb' 'TEST_SERIAL'|Out-Null}catch{$blocked=$true}
     Assert ($blocked -and $transportCalls.Count -eq $callsBefore+1) 'build mismatch stops before requested checks'
     $skill=[IO.File]::ReadAllText((Join-Path $root '.agents/skills/android-investigator/SKILL.md'))
     Assert ($skill -match '(?s)^---\r?\nname: android-investigator\r?\ndescription: [^\r\n]+\r?\n---\r?\n') 'optional skill has valid required scalar frontmatter'

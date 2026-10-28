@@ -38,7 +38,9 @@ La IA debe explicar las observaciones, proponer pasos o pedir una comprobación 
 
 El informe contiene información privada del teléfono y las aplicaciones. El script no envía nada automáticamente. Comparte el ZIP solo con la IA elegida, no en GitHub. Después puedes desactivar la depuración USB. La interfaz del script está en ruso o inglés.
 
-Si la IA pide más mediciones, siga las [instrucciones de comprobación local](../../agent/investigation-rules.md#running-a-follow-up-request-on-windows).
+Mantén esta ventana abierta. Si la IA pide más mediciones, elige **3** aquí: selecciona su JSON descargado o pega el JSON y termina con **END** en una línea aparte. Revisa y confirma las comprobaciones; adjunta el **nuevo ZIP al mismo chat de IA**. Si cerraste la ventana, ejecuta el mismo comando y elige **Reanudar investigación**; el caso está guardado. [Más ayuda](../../agent/investigation-rules.md#running-a-follow-up-request-on-windows).
+
+Cuando haya mediciones fiables, la IA debe mostrar un gráfico útil con tiempo, unidades, fuentes y lagunas. Si faltan datos, debe explicarlo.
 
 <details>
 <summary>¿Ya descargaste el proyecto?</summary>

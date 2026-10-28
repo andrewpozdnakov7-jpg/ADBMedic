@@ -45,6 +45,16 @@ function Capture([string]$name,[string[]]$argv,[string]$folder,[string]$adb,[str
 # workflow: local collection and reports. No mode choice is needed.
 $Mode='offline'
 Write-Host 'ADBMedic' -ForegroundColor Cyan
+. (Join-Path $root 'ADBMedic-Interactive.ps1')
+if(-not $NoBrowser){
+    $selection=Select-ADBMedicResumeCase $work $locale.UI
+    if($selection.Action -eq 'exit'){return}
+    if($selection.Action -eq 'resume'){
+        if($selection.Case.Interrupted){Write-Warning (Get-ADBMedicInteractiveText $locale.UI).partial}
+        Show-ADBMedicCaseMenu $selection.Case.Directory $selection.Case.Bundle $locale.UI
+        return
+    }
+}
 $adb=EnsureAdb
 if(-not (ConfirmAction $t.collect)){Write-Host 'Cancelled';return}
 $serverOutput=@(& $adb start-server 2>&1)
@@ -67,6 +77,7 @@ Write-Host $t.collecting -ForegroundColor Cyan
 $captures=New-Object 'System.Collections.Generic.List[object]'
 $state=Get-ADBMedicCaseState $folder
 $state.answerLocale=$locale.Locale
+$state|Add-Member -NotePropertyName interactiveVersion -NotePropertyValue 1 -Force
 $state.target=[pscustomobject]@{adbSerial=$serial;fingerprintSha256=$null}
 Write-ADBMedicJson (Join-Path $folder 'case.json') $state
 foreach($check in Get-ADBMedicBaseline){Capture $check.id $check.arguments $folder $adb $serial}
@@ -98,29 +109,9 @@ if($bundle -and $bundle.Ready){
 Write-Host $t.reportReady -ForegroundColor Green
 if($bundle -and $bundle.Ready){
     Write-Host $t.shareInstruction
-    Write-Host ''
-    Write-Host $t.starterPrompt -ForegroundColor Cyan
-    Write-Host $bundle.StarterPrompt
-    Write-Host ''
+    if($NoBrowser){Write-Host $t.starterPrompt;Write-Host $bundle.StarterPrompt}
 }
-if(-not $NoBrowser){
-    while($true){
-        Write-Host $t.openReport
-        Write-Host $t.openReportFolder
-        $choice=(Read-Host $t.reportChoice).Trim()
-        if(-not $choice){break}
-        try{
-            switch($choice){
-                '1'{Start-Process -FilePath (Join-Path $folder 'REPORT.html') | Out-Null}
-                '2'{
-                    $visibleFolder=if($bundle -and $bundle.Ready){$bundle.Directory}else{$folder}
-                    Start-Process -FilePath 'explorer.exe' -ArgumentList ('"'+$visibleFolder+'"') | Out-Null
-                }
-                default{Write-Host $t.invalidReportChoice}
-            }
-        }catch{Write-Warning $t.openFailed}
-    }
-}
+if(-not $NoBrowser){Show-ADBMedicCaseMenu $folder $bundle $locale.UI $adb}
 } catch {
     Write-Warning 'ADBMedic could not complete local diagnostics. Check ADB, USB authorization and local storage. Private error details are hidden.'
     exit 1

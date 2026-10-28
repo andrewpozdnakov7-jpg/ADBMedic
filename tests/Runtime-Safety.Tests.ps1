@@ -26,6 +26,7 @@ function Get-Command {
 }
 function Read-Host {
     param($Prompt)
+    if($Prompt -match '^Resume,|^Продолжить,'){return '3'}
     $runtimeTestState.Prompts++
     $runtimeTestState.PromptTexts+=@([string]$Prompt)
     if ($runtimeTestState.Case -eq 'decline') { return 'n' }
@@ -139,6 +140,7 @@ try {
     $runtimeTestState.Case='menu-exit';$runtimeTestState.Prompts=0
     $log=@(& (Join-Path $root 'bootstrap.ps1') *>&1)
     Assert ($runtimeTestState.Browser -eq 0) 'default successful run opens no browser or folder'
+    Assert (($log -join "`n").Contains('3. I have a new request from my AI investigator')) 'fresh baseline offers same-window follow-up'
     Assert (($log -join "`n").Contains('ADBMedic-report.zip')) 'terminal explains which prepared archive to give the AI chat'
     $runtimeTestState.Case='menu';$runtimeTestState.Prompts=0;$runtimeTestState.FailFirstOpen=$true
     $log=@(& (Join-Path $root 'bootstrap.ps1') *>&1)

@@ -1,5 +1,9 @@
 # ADBMedic development rules
 
+## Current owner authorization: TASK-003 interactive investigation
+
+Implement TASK-003: same-window persistent case menu, bounded JSON file/paste import (optional explicit Downloads lookup), local confirmation, replay protection and restart/resume. Reuse ADBMedic-Followup.ps1 validation/check execution; do not add a second diagnostic engine. Update portable instructions, optional skill and starter consistently: grounded charts only with reliable numeric/time/unit evidence, honest tables/unknowns otherwise; downloadable follow-up JSON AND a code block, menu 3 and Resume rather than manual session/version paths. Preserve original raw evidence, no automatic cloud transfer, no GUI/module/admin dependency, no watchers or new app-content capture. Test synthetic Windows PowerShell 5.1/7 menu/import/resume/round/error flows. Save docs/IMPLEMENTATION-003.md and publish a separate branch/PR, then stop for acceptance without merging or a Release. Existing TASK-002 mechanics and source privacy protections below remain in force.
+
 ## Current owner authorization: TASK-002 and local follow-up
 
 Implement the six owner-approved points: literal technical evidence, streaming large-file handling, case metadata, portable INVESTIGATE.md, optional Codex skill and a validated local follow-up runner. This explicitly expands TASK-002A to the scoped TASK-002B request/runner loop. TASK-002C/MCP, automatic AI connections, higher-privilege diagnostics and Releases are not authorized.

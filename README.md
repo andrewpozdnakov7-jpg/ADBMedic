@@ -38,7 +38,9 @@ The AI should explain what the evidence shows, give steps to try, or ask for a s
 
 The report contains private details about your phone and apps. The script uploads nothing automatically. Share the ZIP only with the AI you choose, not on GitHub. You can turn off USB debugging afterward. The script interface currently uses Russian or English.
 
-If the AI asks for more measurements, follow the [local follow-up instructions](agent/investigation-rules.md#running-a-follow-up-request-on-windows).
+Keep this window open. If the AI asks for more measurements, choose **3** here: select its downloaded JSON or paste the JSON and finish with **END** on a separate line. Review and confirm the checks, then attach the **new ZIP to the same AI chat**. If you closed the window, run the same launch command and choose **Resume investigation**; your case is saved. [More help](agent/investigation-rules.md#running-a-follow-up-request-on-windows).
+
+When reliable measurements support it, the AI should show a useful chart with time, units, sources and gaps. If data is missing, it should say so.
 
 <details>
 <summary>Already downloaded the project?</summary>
