@@ -95,6 +95,19 @@ try{
     $cpu=@{schema='adbmedic.followup.v1';case_id=$caseId;reason='TEST_CPU';checks=@(@{id='cpu_threads';target_pid=321})}|ConvertTo-Json -Depth 5|ConvertFrom-Json
     $hash=Get-ADBMedicRequestFingerprint $cpu;$cpu.checks[0]|Add-Member samples 3;$cpu.checks[0]|Add-Member interval_seconds 5
     Assert ((Get-ADBMedicRequestFingerprint $cpu) -ceq $hash) 'explicit default parameters are semantically the same request'
+    $portable=$text|ConvertFrom-Json;$portable.reason="TEST <tag> & ' Unicode: π русский"
+    $portablePath=Join-Path $stage 'canonical-request.json';Write-ADBMedicJson $portablePath $portable
+    $harness=Join-Path $stage 'fingerprint-harness.ps1'
+    [IO.File]::WriteAllText($harness,@'
+param([string]$SourceRoot,[string]$RequestFile)
+$ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+. (Join-Path $SourceRoot 'ADBMedic-Handoff.ps1')
+. (Join-Path $SourceRoot 'ADBMedic-Followup.ps1')
+Get-ADBMedicRequestFingerprint (Read-ADBMedicControlJson $RequestFile)
+'@,[Text.UTF8Encoding]::new($true))
+    $ps51=Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/powershell.exe'
+    $childHash=@(& $ps51 -NoProfile -NonInteractive -File $harness -SourceRoot $root -RequestFile $portablePath)
+    Assert ($LASTEXITCODE -eq 0 -and $childHash.Count -eq 1 -and $childHash[0] -ceq (Get-ADBMedicRequestFingerprint $portable)) 'fingerprint matches PS5 child across engines with HTML and Unicode'
 
     $paste=Request-Text $caseId 'TEST_SECOND_MEASUREMENT_PURPOSE'
     Answers (@('3','2','```json')+@($paste -split '\r?\n')+@('```','END','y','0'))
@@ -169,7 +182,7 @@ try{
 
     $pendingText=Request-Text $caseId 'TEST_INTERRUPTED_REQUEST';$pending=Import-Text $pendingText $caseId
     $pendingPath=Join-Path $case.Directory ('followups/'+[guid]::NewGuid().ToString('N'));[IO.Directory]::CreateDirectory($pendingPath)|Out-Null
-    Write-ADBMedicJson (Join-Path $pendingPath 'case.json') @{schema='adbmedic.case.v1';case_id=$caseId;requestFingerprint=(Get-ADBMedicRequestFingerprint $pending.Request);requestStatus='collecting'}
+    Write-ADBMedicJson (Join-Path $pendingPath 'case.json') @{schema='adbmedic.case.v1';case_id=$caseId;requestFingerprint=(Get-ADBMedicRequestFingerprint $pending.Request);requestFingerprintVersion=1;requestStatus='collecting'}
     $before=$test.Calls.Count;$blocked=$false;Answers @()
     try{Invoke-ADBMedicConfirmedFollowup $case.Directory $pending en|Out-Null}catch{$blocked=$_.Exception.Data['ADBMedicRequestCode'] -eq 'replay'}
     Assert ($blocked -and $test.Calls.Count -eq $before) 'interrupted attempt cannot replay after restart'

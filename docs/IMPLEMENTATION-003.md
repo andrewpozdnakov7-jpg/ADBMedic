@@ -67,9 +67,16 @@ Negative case: evidence/synthetic-battery-state.txt:1 has only 68% at 08:00 +03:
 
 ## Final local verification
 
-Windows PowerShell 5.1 full scripts/Run-CI.ps1: PASS. Assertions: privacy 66, legacy safe-export compatibility 127, summary 26, handoff 359, investigation 329, interactive 68, runtime 140, installer 41, launch 4 — total 1160, plus smoke checks. Markdown links: 70 checked, PASS. git diff --check: PASS. PowerShell 7 is covered by the required PR CI matrix because it is not installed locally. All ADB/UI/Downloads cases were synthetic/mocked. Branch: task-003-interactive-investigation. PR and source commit references are recorded after publication.
+Windows PowerShell 5.1 full scripts/Run-CI.ps1: PASS. Assertions: privacy 66, legacy safe-export compatibility 127, summary 26, handoff 359, investigation 329, interactive 69, runtime 140, installer 41, launch 4 — final suite total 1161, plus smoke checks. Markdown links: 70 checked, PASS. git diff --check: PASS. PowerShell 7 is covered by the required PR CI matrix because it is not installed locally. All ADB/UI/Downloads cases were synthetic/mocked. Branch: task-003-interactive-investigation. PR and source commit references are recorded after publication.
 
 
 ## Review references
 
 [Pull Request 16](https://github.com/andrewpozdnakov7-jpg/ADBMedic/pull/16), branch task-003-interactive-investigation. [Implementation source commit](https://github.com/andrewpozdnakov7-jpg/ADBMedic/commit/a91faf882b8270ae0697daab9c38e9f8e4d6af2c). The following report-only commit records these references. Required Windows PowerShell 5.1/7, privacy and source-archive CI results are attached to the current PR head. Do not merge before owner acceptance; main still has the accepted TASK-002 interface.
+
+
+## Cross-engine replay portability
+
+A final check observed Windows PowerShell 5.1 JSON escaping HTML characters. Replay identity therefore uses versioned length-prefixed UTF-8 strings and explicit integer/array lengths, rather than runtime-dependent JSON serialization. The regression invokes a separate Windows PowerShell 5.1 child with HTML/quote/Unicode reason text and compares its fingerprint to the current engine; PR CI exercises PS7 versus PS5 as well as PS5 versus PS5. Versionless prior rounds with saved requests are normalized from that validated request; ambiguous/incompatible history fails closed. A collecting/interrupted request keeps its versioned identity across restart.
+
+After this correction, local affected suites passed again: interactive 69 and investigation 329. The earlier full local run passed all other suites; final complete Windows PowerShell 5.1/7 results belong to the latest PR CI head. No unchanged local suites were repeated solely for this refinement.

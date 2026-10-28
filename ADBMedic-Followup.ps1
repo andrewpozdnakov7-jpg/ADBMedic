@@ -49,13 +49,23 @@ function ConvertFrom-ADBMedicRequestBytes {
 function Get-ADBMedicRequestFingerprint {
     param($Request)
     $plan=ConvertTo-ADBMedicFollowupPlan $Request $Request.case_id
-    $checks=@(foreach($check in @($plan|Sort-Object id)){
-        [ordered]@{id=$check.id;commands=$check.commands;repeat=$check.repeat;intervalSeconds=$check.intervalSeconds}
-    })
-    $normalized=[ordered]@{schema=$Request.schema;case_id=$Request.case_id;reason=$Request.reason.Trim();checks=$checks}
-    $bytes=[Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $normalized -Depth 8 -Compress))
+    # Fixed length-prefixed UTF-8 format: independent of PS5/PS7 JSON escaping/culture.
+    $buffer=New-Object IO.MemoryStream
+    $writer=[IO.BinaryWriter]::new($buffer,[Text.UTF8Encoding]::new($false),$true)
     $hash=[Security.Cryptography.SHA256]::Create()
-    try{return ([BitConverter]::ToString($hash.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()}finally{$hash.Dispose()}
+    try{
+        $writer.Write('adbmedic.request-identity.v1')
+        $writer.Write([string]$Request.schema);$writer.Write([string]$Request.case_id);$writer.Write([string]$Request.reason.Trim())
+        [string[]]$ids=@($plan|ForEach-Object {$_.id});[Array]::Sort($ids,[StringComparer]::Ordinal)
+        $writer.Write([int]$ids.Count)
+        foreach($id in $ids){
+            $check=$plan|Where-Object id -CEQ $id
+            $writer.Write([string]$id);$writer.Write([int]$check.repeat);$writer.Write([int]$check.intervalSeconds);$writer.Write([int]$check.commands.Count)
+            foreach($command in $check.commands){$writer.Write([int]$command.Count);foreach($argument in $command){$writer.Write([string]$argument)}}
+        }
+        $writer.Flush();$buffer.Position=0
+        return ([BitConverter]::ToString($hash.ComputeHash($buffer))).Replace('-','').ToLowerInvariant()
+    }finally{$hash.Dispose();$writer.Dispose();$buffer.Dispose()}
 }
 
 function Assert-ADBMedicRequestNotReplayed {
@@ -69,13 +79,14 @@ function Assert-ADBMedicRequestNotReplayed {
         $statePath=Join-Path $roundPath 'case.json'
         if(-not (Test-Path -LiteralPath $statePath)){Stop-ADBMedicRequest 'history' 'case'}
         $state=Read-ADBMedicControlJson $statePath
-        if($state.case_id -cne $CaseId){Stop-ADBMedicRequest 'history' 'case'}
+        if($state.case_id -cne $CaseId -or $state.schema -cne 'adbmedic.case.v1'){Stop-ADBMedicRequest 'history' 'case'}
         $old=$state.requestFingerprint
-        if(-not $old -and (Test-Path -LiteralPath (Join-Path $roundPath 'request.json'))){
+        if(( -not $old -or -not $state.requestFingerprintVersion) -and (Test-Path -LiteralPath (Join-Path $roundPath 'request.json'))){
             $legacy=Read-ADBMedicControlJson (Join-Path $roundPath 'request.json')
             [void](ConvertTo-ADBMedicFollowupPlan $legacy $CaseId)
             $old=Get-ADBMedicRequestFingerprint $legacy
         }
+        if(($state.requestFingerprintVersion -and $state.requestFingerprintVersion -ne 1) -or (-not $state.requestFingerprintVersion -and $old -and -not (Test-Path -LiteralPath (Join-Path $roundPath 'request.json')) -and $state.requestStatus -cne 'binding-failed')){Stop-ADBMedicRequest 'history' 'case'}
         if($old -ceq $Fingerprint -and $state.requestStatus -cne 'binding-failed'){Stop-ADBMedicRequest 'replay' 'request'}
     }
 }
@@ -151,7 +162,7 @@ function Invoke-ADBMedicFollowupRound {
     $parent=Assert-ADBMedicLocalDirectory $parent
     $directory=Join-Path $parent $roundId
     [IO.Directory]::CreateDirectory($directory)|Out-Null
-    $round=[pscustomobject]@{schema='adbmedic.case.v1';case_id=$state.case_id;created=[DateTimeOffset]::Now.ToString('o');round_id=$roundId;parent_case_id=$state.case_id;target=$state.target;answerLocale=$state.answerLocale;requestFingerprint=$fingerprint;requestStatus='binding'}
+    $round=[pscustomobject]@{schema='adbmedic.case.v1';case_id=$state.case_id;created=[DateTimeOffset]::Now.ToString('o');round_id=$roundId;parent_case_id=$state.case_id;target=$state.target;answerLocale=$state.answerLocale;requestFingerprint=$fingerprint;requestFingerprintVersion=1;requestStatus='binding'}
     $baselineManifest=Join-Path $Session 'exports/manifest.json'
     $round|Add-Member -NotePropertyName baselineManifestSha256 -NotePropertyValue $(if(Test-Path -LiteralPath $baselineManifest -PathType Leaf){Get-ADBMedicHash $baselineManifest}else{$null})
     Write-ADBMedicJson (Join-Path $directory 'case.json') $round
