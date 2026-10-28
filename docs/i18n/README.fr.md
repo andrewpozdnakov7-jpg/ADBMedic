@@ -38,6 +38,8 @@ L'IA doit expliquer les observations, proposer des étapes ou demander une véri
 
 Le rapport contient des informations privées sur le téléphone et ses applications. Le script n'envoie rien automatiquement. Partagez le ZIP uniquement avec l'IA choisie, pas sur GitHub. Vous pouvez ensuite désactiver le débogage USB. L'interface du script est en russe ou en anglais.
 
+Si l'IA demande des mesures supplémentaires, suivez les [instructions locales](../../agent/investigation-rules.md#running-a-follow-up-request-on-windows).
+
 <details>
 <summary>Le projet est déjà téléchargé ?</summary>
 

@@ -38,6 +38,8 @@ A IA deve explicar as observações, sugerir passos ou pedir uma verificação a
 
 O relatório contém informações privadas do telefone e dos aplicativos. O script não envia nada automaticamente. Compartilhe o ZIP apenas com a IA escolhida, não no GitHub. Depois você pode desativar a depuração USB. A interface do script está em russo ou inglês.
 
+Se a IA pedir mais medições, siga as [instruções da verificação local](../../agent/investigation-rules.md#running-a-follow-up-request-on-windows).
+
 <details>
 <summary>Já baixou o projeto?</summary>
 

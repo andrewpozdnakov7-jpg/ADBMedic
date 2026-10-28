@@ -1,0 +1,20 @@
+{
+  "schema": "adbmedic.check-catalog.v1",
+  "requestSchema": "adbmedic.followup.v1",
+  "limits": {"checks": 3, "samples": [1,12], "interval_seconds": [1,60], "target_pid": [1,4194304]},
+  "checks": [
+    {"id":"cpu_threads","available":true,"parameters":["target_pid","samples","interval_seconds"],"measurement":"Per-thread top samples for one PID; device top flags may be unsupported."},
+    {"id":"process_cpu_times","available":true,"parameters":["target_pid","samples","interval_seconds"],"measurement":"Repeated /proc/PID/stat; check process identity/starttime and CPU tick units."},
+    {"id":"camera_clients","available":true,"parameters":[],"measurement":"Camera service diagnostic state and clients."},
+    {"id":"sensor_clients","available":true,"parameters":[],"measurement":"Sensor service diagnostic state and clients."},
+    {"id":"wakelock_delta","available":true,"parameters":["samples","interval_seconds"],"measurement":"Exactly two complete batterystats snapshots; samples must equal 2. No automatic reset or subtraction. USB remains connected."},
+    {"id":"jobs_alarms","available":true,"parameters":[],"measurement":"Alarm and job scheduler state with original counters."},
+    {"id":"battery_timeline","available":true,"parameters":[],"measurement":"Service-provided batterystats history, without reset."},
+    {"id":"power_sleep_state","available":true,"parameters":[],"measurement":"Power and deviceidle snapshots."},
+    {"id":"gnss_activity","available":true,"parameters":[],"measurement":"Location service diagnostic state; may include precise location."},
+    {"id":"radio_network_state","available":true,"parameters":[],"measurement":"Telephony, connectivity, Wi-Fi and network stats; may identify networks/location."},
+    {"id":"thermal_history","available":true,"parameters":[],"measurement":"Thermal service data; history only if the service actually reports it."},
+    {"id":"targeted_logcat","available":true,"parameters":["target_pid"],"measurement":"System/crash buffers for one PID, last 200 records. Can incidentally contain sensitive content."},
+    {"id":"native_stack","available":false,"parameters":["target_pid"],"measurement":"Not implemented; no automatic debugger attachment or privilege escalation."}
+  ]
+}

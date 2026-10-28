@@ -7,6 +7,7 @@ param(
 $ErrorActionPreference='Stop'
 try {
 . (Join-Path $PSScriptRoot 'ADBMedic-Locale.ps1')
+. (Join-Path $PSScriptRoot 'ADBMedic-Summary.ps1')
 $folder=(Resolve-Path -LiteralPath $Session).Path
 $locale=Resolve-ADBMedicLanguage -Language $Language -Session $folder
 $t=Get-ADBMedicText -UI $locale.UI
@@ -45,9 +46,10 @@ foreach($name in $files){
 $cpuLine=''
 $topPath=Join-Path $folder 'top.txt'
 if(Test-Path -LiteralPath $topPath){
-    foreach($line in [IO.File]::ReadAllLines($topPath,[Text.Encoding]::UTF8)){
+    $reader=New-ADBMedicAnalysisReader $topPath
+    try{while($null -ne ($line=$reader.ReadLine())){
         if($line -match '^\s*\d+%cpu\s+'){$cpuLine=$line.Trim()}
-    }
+    }}finally{$reader.Dispose()}
 }
 if($cpuLine.Length -gt 250){$cpuLine=$cpuLine.Substring(0,250)}
 $cpuLine=$cpuLine.Replace('|','/')
