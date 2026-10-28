@@ -46,4 +46,9 @@ PowerShell 7 is not installed locally; the required PR CI matrix runs it separat
 
 ## Local results at branch publication
 
-Windows PowerShell 5.1 full run: PASS. Final affected suites: handoff 359, investigation 328 assertions; other suites: privacy 66, legacy compatibility 127, summary 26, runtime 139, installer 41, launch 4. Total: 1090 explicit assertions plus smoke checks. All 69 local Markdown links passed. Native byte transport and timeout tests launched only a synthetic PowerShell child, never ADB.
+Windows PowerShell 5.1 full run: PASS. Final affected suites: handoff 359, investigation 329 assertions; other suites: privacy 66, legacy compatibility 127, summary 26, runtime 139, installer 41, launch 4. Total: 1091 explicit assertions plus smoke checks. All 69 local Markdown links passed. Native byte transport and timeout tests launched only a synthetic PowerShell child, never ADB.
+
+
+## Review references
+
+[Pull Request 15](https://github.com/andrewpozdnakov7-jpg/ADBMedic/pull/15), branch task-002-investigation. [Implementation source commit](https://github.com/andrewpozdnakov7-jpg/ADBMedic/commit/2a6474e4323be8239985cceb4913c4ef2c204e4e). The subsequent report-only commit records these references and corrects the displayed assertion total. Required Windows PowerShell 5.1/7, privacy and source-archive CI results are available on the current PR head; acceptance requires those checks to pass. Main remains unchanged until owner review.
