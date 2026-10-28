@@ -68,3 +68,8 @@ Negative case: evidence/synthetic-battery-state.txt:1 has only 68% at 08:00 +03:
 ## Final local verification
 
 Windows PowerShell 5.1 full scripts/Run-CI.ps1: PASS. Assertions: privacy 66, legacy safe-export compatibility 127, summary 26, handoff 359, investigation 329, interactive 68, runtime 140, installer 41, launch 4 — total 1160, plus smoke checks. Markdown links: 70 checked, PASS. git diff --check: PASS. PowerShell 7 is covered by the required PR CI matrix because it is not installed locally. All ADB/UI/Downloads cases were synthetic/mocked. Branch: task-003-interactive-investigation. PR and source commit references are recorded after publication.
+
+
+## Review references
+
+[Pull Request 16](https://github.com/andrewpozdnakov7-jpg/ADBMedic/pull/16), branch task-003-interactive-investigation. [Implementation source commit](https://github.com/andrewpozdnakov7-jpg/ADBMedic/commit/a91faf882b8270ae0697daab9c38e9f8e4d6af2c). The following report-only commit records these references. Required Windows PowerShell 5.1/7, privacy and source-archive CI results are attached to the current PR head. Do not merge before owner acceptance; main still has the accepted TASK-002 interface.
